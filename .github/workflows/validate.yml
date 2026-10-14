@@ -1,0 +1,56 @@
+name: Validate
+
+# The whole repository is scanned for secrets, and every package and the index are
+# checked with the published `@opengroow/template-validator`.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The CLI image rather than gitleaks-action: the action needs a paid
+      # licence on organisation repositories, the scanner itself is MIT.
+      - name: Scan the history for secrets
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 \
+            detect --source /repo --redact --no-banner --verbose
+
+  packages:
+    name: Validate packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The validator is a published bundle of the product's manifest reader
+      # (https://www.npmjs.com/package/@opengroow/template-validator). Bump the pinned
+      # version when the manifest format changes.
+      - name: Validate every package and the index
+        env:
+          VALIDATOR: "@opengroow/template-validator@0.1.0"
+        run: |
+          status=0
+          for dir in packages/*/; do
+            npx --yes "$VALIDATOR" package "${dir%/}" || status=1
+          done
+          npx --yes "$VALIDATOR" index index.json || status=1
+          exit $status

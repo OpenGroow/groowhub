@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "id": "@opengroow/source",
+      "name": "Source Agent",
+      "description": "A system-level agent that judges every origin's Sources against a fixed rubric and routes the daily selected Source to the Template that should produce from it.",
+      "repository": "OpenGroow/groowhub",
+      "tag": "source@1.0.0",
+      "asset": "opengroow-source-1.0.0.tgz",
+      "digest": "sha256:e133bd37a737e80993bdee8ae45be21bf394a3b04a9324a04b3550fd77ce19b0",
+      "category": "system",
+      "verification": "official"
+    }
+  ]
+}
