@@ -1,6 +1,6 @@
 # groowhub
 
-The public hub of official Megaclaw Templates (`@opengroow/*`). It is a plain
+The public hub of official OpenGroow Templates (`@opengroow/*`). It is a plain
 GitHub repository:
 
 ```
@@ -10,13 +10,13 @@ tools/update-index.mjs     used by the release workflow
 .github/                   validation, release and secret-scan workflows, CODEOWNERS
 ```
 
-Megaclaw reads `index.json` from this repository (`MEGACLAW_HUB_REPOSITORY`,
+OpenGroow reads `index.json` from this repository (`OPENGROOW_HUB_REPOSITORY`,
 default `OpenGroow/groowhub`) and installs an entry by downloading the release
 asset it names and checking its sha256 against the index before extracting
 anything.
 
 > This folder is the template of that repository, kept next to the product
-> code (`hub-template/` in the Megaclaw repository) so that the workflows stay
+> code (`hub-template/` in the OpenGroow repository) so that the workflows stay
 > in step with the installer. Copy its contents (not a `.git`) into the hub
 > repository.
 
@@ -74,7 +74,7 @@ The index decides what installs on users' deployments, so:
   `GITHUB_TOKEN` do not trigger other workflows, so a maintainer may need to
   push an empty commit or re-run **Validate** on it);
 - tag protection (or a ruleset) on `*@*` so only maintainers can release;
-- the workflows hold no secret from the Megaclaw repository: they use
+- the workflows hold no secret from the OpenGroow repository: they use
   `GITHUB_TOKEN` only.
 
 ## License
