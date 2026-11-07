@@ -17,6 +17,28 @@ A package's **first** entry in `index.json` (`id`, `name`, `description`,
 `category`, `verification`) is written by a maintainer in a reviewed PR; the
 release workflow only moves an existing entry, it never grants a trust level.
 
+## Publishing a Publisher package
+
+Publisher packages (Postiz, ...) are not Templates: they hold code that the
+OpenGroow core runs (ADR-072 in the OpenGroow repository). They live in
+`packages/publisher/<id>/` (`manifest.json`, `data/capabilities.json`,
+`data/channel-options.json`, `src/index.ts` whose default export is the plugin)
+and are listed in their own index, `publishers.json`.
+
+1. Bump `version` in `packages/publisher/<id>/package.json` and merge the change.
+2. Push the tag `publisher-<id>@<version>` (for example `publisher-postiz@1.1.0`).
+3. The **Release** workflow builds the package with `tools/build-publisher.mjs`
+   (bundle + `npm pack`), attaches the `.tgz` to the GitHub Release and opens a PR
+   that moves the entry in `publishers.json` (`tag`, `asset`, `digest`).
+4. A code owner reviews and merges it.
+
+The first entry in `publishers.json` (including the placeholder digest
+`sha256:000...0` and the icon) is written by a maintainer in a reviewed PR,
+like for Templates. The plugin imports only *types* from
+`@opengroow/publisher-sdk`, so it builds without the SDK. `pnpm test` runs the
+plugins' tests and `pnpm run validate:publishers` checks the folders and the
+index.
+
 ## Validation
 
 Every package and `index.json` are validated with
