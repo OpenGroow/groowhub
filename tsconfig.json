@@ -1,0 +1,23 @@
+{
+  // Typecheck of the Publisher packages against @opengroow/publisher-sdk, which
+  // is not published: it is read from a checkout of the OpenGroow repository,
+  // in .sdk/ (CI) or next to this one (../OpenGroow, local development).
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@opengroow/publisher-sdk": [
+        "./.sdk/packages/publisher-sdk/src/index.ts",
+        "../OpenGroow/packages/publisher-sdk/src/index.ts"
+      ]
+    }
+  },
+  "include": ["packages/publisher/*/src/**/*.ts"]
+}

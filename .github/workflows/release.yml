@@ -37,6 +37,13 @@ jobs:
             exit 1
           fi
           name="${BASH_REMATCH[1]}"
+          # `publisher` and the `publisher-` prefix are reserved for Publisher
+          # packages: packages/publisher/ is not a Template, and no Template may
+          # be named publisher-<x>.
+          if [[ "$name" == "publisher" || "$name" == "publisher-" ]]; then
+            echo "::error::Tag \"$TAG\" names no package: a Publisher tag is publisher-<id>@<version>"
+            exit 1
+          fi
           if [[ "$name" == publisher-* ]]; then
             echo "dir=packages/publisher/${name#publisher-}" >> "$GITHUB_OUTPUT"
             echo "index=publishers.json" >> "$GITHUB_OUTPUT"
@@ -52,6 +59,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check the package folder
+        run: |
+          if ! [ -f "${{ steps.tag.outputs.dir }}/package.json" ]; then
+            echo "::error::No package at ${{ steps.tag.outputs.dir }} for tag \"$TAG\""
+            exit 1
+          fi
       - name: Pack
         id: pack
         run: |

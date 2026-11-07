@@ -52,6 +52,8 @@ jobs:
           for dir in packages/*/; do
             # packages/publisher/ holds Publisher packages, checked in their own job
             [ "$(basename "$dir")" = "publisher" ] && continue
+            # the publisher- prefix is reserved for Publisher tags (release.yml)
+            case "$(basename "$dir")" in publisher-*) echo "::error::$dir: a Template cannot be named publisher-*"; status=1; continue;; esac
             npx --yes "$VALIDATOR" validate template "${dir%/}" || status=1
           done
           npx --yes "$VALIDATOR" validate index index.json || status=1
@@ -74,5 +76,16 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 11
+      # The plugins import types from @opengroow/publisher-sdk, which is not
+      # published: typecheck them against the SDK of the OpenGroow repository
+      # (tsconfig.json reads it from .sdk/), so a contract change breaks here
+      # rather than when the core loads the plugin.
+      - uses: actions/checkout@v4
+        with:
+          repository: OpenGroow/OpenGroow
+          path: .sdk
+          sparse-checkout: packages/publisher-sdk
+          persist-credentials: false
       - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
       - run: pnpm test

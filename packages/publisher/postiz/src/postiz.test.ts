@@ -174,3 +174,110 @@ describe("Postiz manifest", () => {
     expect(postizAdapter.contractVersion).toBe(postizManifest.contractVersion);
   });
 });
+
+describe("Postiz adapter: review fixes", () => {
+  it("matches a caption with literal brackets against its HTML copy, and not the reverse", async () => {
+    const { sameCaption } = await import("./postiz");
+    expect(sameCaption("<p>x &lt; y &gt; z</p>", "x < y > z")).toBe(true);
+    expect(sameCaption("x < y > z", "x < y > z")).toBe(true);
+    expect(sameCaption("<p>a &amp;lt; b</p>", "a &lt; b")).toBe(true);
+    expect(sameCaption("<p>x z</p>", "x < y > z")).toBe(false);
+  });
+
+  it("refuses a carousel with an invalid slide", async () => {
+    stub();
+    const res = await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "instagram",
+      publishable: { kind: "carousel", slideUrls: [null, 42], caption: "c" },
+    });
+    expect(res).toMatchObject({ ok: false, error: expect.stringContaining("missing media reference") });
+  });
+
+  it("checks the Pinterest board before uploading anything", async () => {
+    const calls = stub();
+    const res = await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "pinterest",
+      publishable: { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" },
+    });
+    expect(res.ok).toBe(false);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("keeps the real __type, sends YouTube's visibility and a title from the caption", async () => {
+    const calls = stub();
+    const res = await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "youtube", settings: { __type: "instagram" },
+      publishable: { kind: "video", videoUrl: "https://x.test/v.mp4", caption: "\nFirst line\nmore" },
+    });
+    expect(res.ok).toBe(true);
+    expect(post(calls).settings).toMatchObject({ __type: "youtube", type: "public", title: "First line" });
+  });
+
+  it("drops the video-only TikTok options from a photo post", async () => {
+    const calls = stub();
+    await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok", settings: { duet: true, stitch: true },
+      publishable: { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" },
+    });
+    const settings = post(calls).settings;
+    expect(settings).not.toHaveProperty("duet");
+    expect(settings).not.toHaveProperty("stitch");
+    expect(settings).toHaveProperty("autoAddMusic");
+  });
+
+  it("returns an error, not an exception, for a media URL with a stray '%'", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      if (String(url).startsWith("http://localhost:3000/")) {
+        return new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "image/png" } });
+      }
+      if (String(url).endsWith("/posts")) return new Response(JSON.stringify([{ postId: "p1" }]), { status: 200 });
+      return new Response(JSON.stringify({ id: "u", path: "/u.png" }), { status: 200 });
+    }));
+    const res = await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "pinterest", settings: { board: "b" },
+      publishable: { kind: "image", imageUrl: "http://localhost:3000/media/100%off.png", caption: "c" },
+    });
+    expect(res).toMatchObject({ ok: true });
+  });
+
+  it("never downloads from a link-local host, even through a redirect", async () => {
+    const fetched: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      fetched.push(String(url));
+      return new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/x.png" } });
+    }));
+    for (const imageUrl of ["http://169.254.169.254/latest/x.png", "http://localhost:3000/r.png"]) {
+      const res = await postizAdapter.publish(CONN, {
+        channelId: "c", channelService: "pinterest", settings: { board: "b" },
+        publishable: { kind: "image", imageUrl, caption: "c" },
+      });
+      expect(res).toMatchObject({ ok: false, error: expect.stringContaining("not allowed") });
+    }
+    expect(fetched).toEqual(["http://localhost:3000/r.png"]);
+  });
+
+  it("refuses a non-media download and a media over the size limit", async () => {
+    const { MAX_MEDIA_BYTES } = await import("./postiz");
+    const cases: Array<Record<string, string>> = [{ "content-type": "application/json" }, { "content-type": "video/mp4", "content-length": String(MAX_MEDIA_BYTES + 1) }];
+    for (const headers of cases) {
+      vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200, headers })));
+      const res = await postizAdapter.publish(CONN, {
+        channelId: "c", channelService: "pinterest", settings: { board: "b" },
+        publishable: { kind: "image", imageUrl: "http://localhost:3000/x", caption: "c" },
+      });
+      expect(res.ok).toBe(false);
+    }
+  });
+
+  it("finds a post outside the window around its scheduled date before declaring it gone", async () => {
+    const queries: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: unknown) => {
+      queries.push(String(url));
+      const posts = queries.length === 1 ? [] : [{ id: "p1", state: "QUEUE" }];
+      return new Response(JSON.stringify({ posts }), { status: 200 });
+    }));
+    const res = await postizAdapter.getStatus(CONN, "p1");
+    expect(res).toEqual({ ok: true, post: { status: "scheduled" } });
+    expect(queries).toHaveLength(2);
+  });
+});
