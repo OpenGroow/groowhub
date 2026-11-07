@@ -57,7 +57,7 @@ packages/<name>/
 Validate your Template locally:
 
 ```bash
-npx @opengroow/template-validator package <folder> --tag <name>@<version>
+npx @opengroow/groowhub-cli validate template <folder> --tag <name>@<version>
 ```
 
 See the [Template development guide](https://github.com/OpenGroow/OpenGroow/blob/main/docs/TEMPLATE_DEVELOPMENT.md) for the full package format.
@@ -113,7 +113,7 @@ Each registry entry tells OpenGroow where to find a Template and how to verify i
 Templates can contain executable capabilities, so releases are controlled:
 
 - **Integrity**: archives are checked against their SHA-256 digest before extraction.
-- **Automated validation**: packages and index entries are checked with [`@opengroow/template-validator`](https://www.npmjs.com/package/@opengroow/template-validator) on every PR and push to `main`.
+- **Automated validation**: packages and index entries are checked with [`@opengroow/groowhub-cli`](https://www.npmjs.com/package/@opengroow/groowhub-cli) on every PR and push to `main`.
 - **Secret scanning**: Git history is scanned with [Gitleaks](https://github.com/gitleaks/gitleaks).
 - **Reviewed releases**: index updates require code-owner approval.
 - **Controlled trust levels**: a release workflow can never assign or change `verification`.
