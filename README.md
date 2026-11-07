@@ -1,82 +1,125 @@
-# groowhub
+# GroowHub
 
-The public hub of official OpenGroow Templates (`@opengroow/*`). It is a plain
-GitHub repository:
+**Extend what your AI agents can do.**
 
+GroowHub is the official Template hub for [OpenGroow](https://github.com/OpenGroow/OpenGroow), the open-source platform for building and managing AI agent teams. Install a Template in one click and get a ready-to-use agent, with its instructions, files, and integrations.
+
+[![Validate](https://github.com/OpenGroow/groowhub/actions/workflows/validate.yml/badge.svg)](https://github.com/OpenGroow/groowhub/actions/workflows/validate.yml)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+
+**Open source · Extensible · Powered by OpenClaw**
+
+## Available Templates
+
+| Template | Description | Category | Verification |
+| --- | --- | --- | --- |
+| [`@opengroow/source`](packages/source) | Judges every origin's Sources against a fixed rubric and routes the daily selected Source | system | official |
+
+The full list lives in [`index.json`](index.json).
+
+## What is a Template?
+
+A Template is a reusable, versioned package that adds capabilities to an OpenGroow Project. It can include:
+
+- **Agent instructions** (`CLAW.md`): what the agent does and how it behaves.
+- **Workspace**: the files and resources the agent needs.
+- **Profiles**: agent-specific configuration.
+- **Plugins**: additional tools and integrations.
+- **MCP integrations**: connections to external services.
+
+Templates are built for OpenGroow's OpenClaw-based runtime.
+
+## Using GroowHub
+
+GroowHub is built into OpenGroow. No manual installation is needed.
+
+1. Open your OpenGroow dashboard and select a Project.
+2. Click **Add Agent**.
+3. Choose a Template from GroowHub and install it.
+
+OpenGroow downloads the Template from its GitHub Release and verifies its SHA-256 digest against the registry before extracting it.
+
+To use a fork or another registry, set `OPENGROOW_HUB_REPOSITORY` (default: `OpenGroow/groowhub`).
+
+## Creating Templates
+
+Each Template lives in `packages/<name>/`:
+
+```text
+packages/<name>/
+├── package.json   # identity, version, configuration
+├── CLAW.md        # agent instructions
+├── workspace/     # files and resources
+├── profiles/      # agent profiles
+└── plugins/       # plugins
 ```
-index.json                 one entry per package: what installs, and its digest
-packages/<name>/           one folder per Template (package.json, CLAW.md, workspace/, profiles/, plugins/)
-tools/update-index.mjs     used by the release workflow
-.github/                   validation, release and secret-scan workflows, CODEOWNERS
+
+Validate your Template locally:
+
+```bash
+npx @opengroow/template-validator package <folder> --tag <name>@<version>
 ```
 
-OpenGroow reads `index.json` from this repository (`OPENGROOW_HUB_REPOSITORY`,
-default `OpenGroow/groowhub`) and installs an entry by downloading the release
-asset it names and checking its sha256 against the index before extracting
-anything.
+See the [Template development guide](https://github.com/OpenGroow/OpenGroow/blob/main/docs/TEMPLATE_DEVELOPMENT.md) for the full package format.
 
-> This folder is the template of that repository, kept next to the product
-> code (`hub-template/` in the OpenGroow repository) so that the workflows stay
-> in step with the installer. Copy its contents (not a `.git`) into the hub
-> repository.
+## Contributing
 
-## Releasing a package
+Contributions are welcome: improvements to existing Templates, bug fixes, documentation, and proposals for new Templates.
 
-1. Bump `version` in `packages/<name>/package.json` and merge the change.
-2. Push a tag `<name>@<version>` (for example `source@1.2.0`).
-3. The **Release** workflow runs `pnpm pack`, attaches the `.tgz` to a GitHub Release, and opens a PR that
-   updates the package's entry in `index.json` (`repository`, `tag`, `asset`,
-   `digest`).
-4. A code owner reviews and merges that PR. Only then does the new version
-   become installable.
+Anyone can propose a new Template through a pull request that adds `packages/<name>/`. Describe its purpose and capabilities in the PR, and make sure it passes the validator (see [Creating Templates](#creating-templates)). You can open an issue first to discuss the idea.
 
-A package's **first** entry in `index.json` (`id`, `name`, `description`,
-`category`, `verification`) is written by a maintainer in a reviewed PR; the
-release workflow only moves an existing entry, it never grants a trust level.
+Every PR is subject to validation and maintainer review. New entries in `index.json` are always added by a maintainer through a reviewed PR, and automated releases can never create trusted entries or assign verification levels, so a contributed Template is not marked `official` unless the maintainers decide so.
 
-Example entry:
+Maintainers: see [docs/PUBLISHING.md](docs/PUBLISHING.md) for the release process and repository settings.
+
+## How GroowHub works
+
+GroowHub is a GitHub-based registry. It needs no separate server.
+
+```text
+groowhub/
+├── index.json              # registry index
+├── packages/               # one directory per Template
+├── tools/update-index.mjs  # used by the release workflow
+└── .github/                # validation, release, secret scan, CODEOWNERS
+```
+
+Each registry entry tells OpenGroow where to find a Template and how to verify it:
 
 ```json
 {
   "id": "@opengroow/source",
-  "name": "Source",
+  "name": "Source Agent",
   "description": "…",
   "repository": "OpenGroow/groowhub",
-  "tag": "source@1.2.0",
-  "asset": "opengroow-source-1.2.0.tgz",
+  "tag": "source@1.0.0",
+  "asset": "opengroow-source-1.0.0.tgz",
   "digest": "sha256:<64 hex>",
   "category": "system",
   "verification": "official"
 }
 ```
 
-## Validation
+| Field | Meaning |
+| --- | --- |
+| `id` | Unique identifier, `@opengroow/<name>` for official Templates |
+| `repository` / `tag` / `asset` | Where to download the release archive |
+| `digest` | SHA-256 of the archive, checked before extraction |
+| `category` | Kind of Template (for example `system`) |
+| `verification` | Trust level (for example `official`), set only through a reviewed PR |
 
-Every package and `index.json` are validated with
-[`@opengroow/template-validator`](https://www.npmjs.com/package/@opengroow/template-validator),
-a published bundle of the product's manifest reader, by hand
-(`npx @opengroow/template-validator package <folder> --tag <name>@<version>`) and by the
-**Validate** workflow on every pull request and push to `main`. The workflow pins the
-validator version: bump it when the manifest format changes. It also runs a
-[gitleaks](https://github.com/gitleaks/gitleaks) scan of the whole history.
+## Security & trust
 
-## Repository settings (trust root)
+Templates can contain executable capabilities, so releases are controlled:
 
-The index decides what installs on users' deployments, so:
+- **Integrity**: archives are checked against their SHA-256 digest before extraction.
+- **Automated validation**: packages and index entries are checked with [`@opengroow/template-validator`](https://www.npmjs.com/package/@opengroow/template-validator) on every PR and push to `main`.
+- **Secret scanning**: Git history is scanned with [Gitleaks](https://github.com/gitleaks/gitleaks).
+- **Reviewed releases**: index updates require code-owner approval.
+- **Controlled trust levels**: a release workflow can never assign or change `verification`.
 
-- mandatory 2FA for the organization;
-- `main` protected: pull requests only, required status checks (`Validate`),
-  required review from code owners (see `.github/CODEOWNERS`, set the real
-  team), no force-push;
-- Settings, Actions, General: workflow permissions "Read repository contents"
-  by default, and "Allow GitHub Actions to create and approve pull requests"
-  enabled (the release workflow opens the index PR; PRs opened with
-  `GITHUB_TOKEN` do not trigger other workflows, so a maintainer may need to
-  push an empty commit or re-run **Validate** on it);
-- tag protection (or a ruleset) on `*@*` so only maintainers can release;
-- the workflows hold no secret from the OpenGroow repository: they use
-  `GITHUB_TOKEN` only.
+Digest verification protects integrity, not behavior: it does not guarantee that a Template's code is safe. Only install Templates from sources you trust.
 
 ## License
 
-MIT, see `LICENSE`.
+GroowHub is licensed under the [MIT License](LICENSE). OpenGroow itself is distributed separately under AGPL-3.0-only.
