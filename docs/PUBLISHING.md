@@ -27,8 +27,8 @@ and are listed in their own index, `publishers.json`.
 
 1. Bump `version` in `packages/publisher/<id>/package.json` and merge the change.
 2. Push the tag `publisher-<id>@<version>` (for example `publisher-postiz@1.1.0`).
-3. The **Release** workflow builds the package with `tools/build-publisher.mjs`
-   (bundle + `npm pack`), attaches the `.tgz` to the GitHub Release and opens a PR
+3. The **Release** workflow builds the package with `npx @opengroow/groowhub-cli pack publisher`
+   (`groowhub pack publisher`, bundle + `npm pack`), attaches the `.tgz` to the GitHub Release and opens a PR
    that moves the entry in `publishers.json` (`tag`, `asset`, `digest`).
 4. A code owner reviews and merges it.
 
@@ -36,15 +36,15 @@ The first entry in `publishers.json` (including the placeholder digest
 `sha256:000...0` and the icon) is written by a maintainer in a reviewed PR,
 like for Templates. The plugin imports only *types* from
 `@opengroow/publisher-sdk`, so it builds without the SDK. `pnpm test` runs the
-plugins' tests and `pnpm run validate:publishers` checks the folders and the
-index.
+plugins' tests; the **Validate** workflow checks the folders and `publishers.json` with
+`@opengroow/groowhub-cli validate publisher` / `validate index --kind publisher`.
 
 ## Validation
 
 Every package and `index.json` are validated with
-[`@opengroow/template-validator`](https://www.npmjs.com/package/@opengroow/template-validator),
+[`@opengroow/groowhub-cli`](https://www.npmjs.com/package/@opengroow/groowhub-cli),
 a published bundle of the product's manifest reader, by hand
-(`npx @opengroow/template-validator package <folder> --tag <name>@<version>`) and by the
+(`npx @opengroow/groowhub-cli validate template <folder> --tag <name>@<version>`) and by the
 **Validate** workflow on every pull request and push to `main`. The workflow pins the
 validator version: bump it when the manifest format changes. It also runs a
 [gitleaks](https://github.com/gitleaks/gitleaks) scan of the whole history.
