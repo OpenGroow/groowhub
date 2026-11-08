@@ -1,98 +1,125 @@
 name: Release
 
-# Pushing a tag `<name>@<version>` (e.g. seo@1.2.0) releases packages/<name>:
-# `pnpm pack` it, attach the .tgz to a GitHub Release, and open a
-# PR that points the package's entry in index.json at the new asset and digest.
-# A tag `publisher-<id>@<version>` (e.g. publisher-postiz@1.0.0) releases the
-# Publisher package packages/publisher/<id> the same way: it is built with
-# `groowhub pack publisher` (@opengroow/groowhub-cli) and listed in publishers.json instead of index.json.
-# The PR is the human gate: the index decides what installs on users'
-# deployments. No secret is used; only the workflow's own GITHUB_TOKEN.
+# Releases a package when a merge to main changes its version: no tag to push,
+# no second PR. For every package whose index entry does not point at its
+# current version (tools/pending-releases.mjs), it builds the package, creates
+# the tag and the GitHub Release on the merged commit, then writes the new tag,
+# asset and digest into the index and commits it to main.
+#
+#   Templates   packages/<name>             tag <name>@<version>            index.json
+#   Publishers  packages/publisher/<id>     tag publisher-<id>@<version>    publishers.json
+#
+# The human gate is the reviewed PR that bumps the version: that merge decides
+# what installs on users' deployments. The first index entry of a package (and
+# its trust level) is still added by a maintainer in a reviewed PR; a package
+# without one is skipped.
+#
+# It acts as a GitHub App (vars.RELEASE_APP_ID, secrets.RELEASE_APP_PRIVATE_KEY)
+# because the index commit must bypass the "Protect main" ruleset: the App is
+# that ruleset's only other bypass actor. Idempotent: a run that stops after a
+# release but before the index commit is completed by the next run (or "Run
+# workflow"), which reuses the release asset.
 
 on:
   push:
-    tags:
-      - "*@*"
+    branches: [main]
+    # The index commit touches only index.json / publishers.json: it does not re-trigger this.
+    paths: ["packages/**"]
+  workflow_dispatch:
 
-# Nothing by default; the job asks for exactly what it needs.
+# Nothing by default; the App token carries the write access.
 permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # create the release, push the index branch
-      pull-requests: write # open the index PR
+      contents: read
     env:
-      TAG: ${{ github.ref_name }}
-      GH_TOKEN: ${{ github.token }}
       # The hub's tooling, published from the OpenGroow repository. Bump when a manifest format changes.
       GROOWHUB_CLI: "@opengroow/groowhub-cli@0.1.0"
     steps:
-      - name: Read the tag
-        id: tag
-        run: |
-          if ! [[ "$TAG" =~ ^([a-z0-9][a-z0-9-]*)@([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
-            echo "::error::Tag \"$TAG\" is not <name>@<semver>"
-            exit 1
-          fi
-          name="${BASH_REMATCH[1]}"
-          # `publisher` and the `publisher-` prefix are reserved for Publisher
-          # packages: packages/publisher/ is not a Template, and no Template may
-          # be named publisher-<x>.
-          if [[ "$name" == "publisher" || "$name" == "publisher-" ]]; then
-            echo "::error::Tag \"$TAG\" names no package: a Publisher tag is publisher-<id>@<version>"
-            exit 1
-          fi
-          if [[ "$name" == publisher-* ]]; then
-            echo "dir=packages/publisher/${name#publisher-}" >> "$GITHUB_OUTPUT"
-            echo "index=publishers.json" >> "$GITHUB_OUTPUT"
-            echo "publisher=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "dir=packages/$name" >> "$GITHUB_OUTPUT"
-            echo "index=index.json" >> "$GITHUB_OUTPUT"
-            echo "publisher=false" >> "$GITHUB_OUTPUT"
-          fi
+      - uses: actions/create-github-app-token@v1
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
         with:
-          persist-credentials: true # needed to push the index branch below
+          token: ${{ steps.app.outputs.token }}
+          persist-credentials: true # pushes the index commit below
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check the package folder
+
+      - name: Find the versions to release
+        id: find
         run: |
-          if ! [ -f "${{ steps.tag.outputs.dir }}/package.json" ]; then
-            echo "::error::No package at ${{ steps.tag.outputs.dir }} for tag \"$TAG\""
-            exit 1
+          pending=$(node tools/pending-releases.mjs)
+          echo "$pending"
+          echo "pending=$pending" >> "$GITHUB_OUTPUT"
+
+      - name: Release them
+        if: steps.find.outputs.pending != '[]'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PENDING: ${{ steps.find.outputs.pending }}
+        run: |
+          set -euo pipefail
+          while read -r release; do
+            dir=$(jq -r .dir <<<"$release")
+            tag=$(jq -r .tag <<<"$release")
+            index=$(jq -r .index <<<"$release")
+            out="$RUNNER_TEMP/dist/$tag"
+            mkdir -p "$out"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "::notice::$tag is already released: reusing its asset"
+              gh release download "$tag" --pattern '*.tgz' --dir "$out"
+            else
+              if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+                echo "::error::The tag $tag exists without a release (tags cannot be deleted): bump the version of $dir"
+                exit 1
+              fi
+              if [ "$index" = "publishers.json" ]; then
+                npx --yes "$GROOWHUB_CLI" pack publisher "$dir" --out "$out"
+              else
+                npm pack "./$dir" --pack-destination "$out"
+              fi
+              file=$(ls "$out"/*.tgz)
+              gh release create "$tag" "$file" --target "$GITHUB_SHA" --title "$tag" \
+                --notes "Release asset: $(basename "$file")"
+            fi
+            file=$(ls "$out"/*.tgz)
+            node tools/update-index.mjs --index "$index" --package "$dir" \
+              --repository "$GITHUB_REPOSITORY" --tag "$tag" --file "$file"
+            echo "$tag" >> "$RUNNER_TEMP/released"
+          done < <(jq -c '.[]' <<<"$PENDING")
+
+      - name: Commit the index
+        if: steps.find.outputs.pending != '[]'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- index.json publishers.json; then
+            echo "The index already points at these releases"
+            exit 0
           fi
-      - name: Pack
-        id: pack
-        run: |
-          mkdir -p "$RUNNER_TEMP/dist"
-          if [ "${{ steps.tag.outputs.publisher }}" = "true" ]; then
-            npx --yes "$GROOWHUB_CLI" pack publisher "${{ steps.tag.outputs.dir }}" --out "$RUNNER_TEMP/dist"
-          else
-            npm pack "./${{ steps.tag.outputs.dir }}" --pack-destination "$RUNNER_TEMP/dist"
-          fi
-          file=$(ls "$RUNNER_TEMP"/dist/*.tgz)
-          echo "file=$file" >> "$GITHUB_OUTPUT"
-          echo "sha256:$(sha256sum "$file" | cut -d' ' -f1)"
-      - name: Create the release with the asset
-        run: |
-          gh release create "$TAG" "${{ steps.pack.outputs.file }}" --title "$TAG" \
-            --notes "Release asset: $(basename '${{ steps.pack.outputs.file }}')"
-      - name: Point index.json at the release (PR)
-        run: |
-          git fetch origin main
-          git switch -c "release/$TAG" origin/main
-          node tools/update-index.mjs --index "${{ steps.tag.outputs.index }}" \
-            --package "${{ steps.tag.outputs.dir }}" \
-            --repository "$GITHUB_REPOSITORY" --tag "$TAG" \
-            --file "${{ steps.pack.outputs.file }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Release $TAG"
-          git push origin "release/$TAG"
-          gh pr create --base main --head "release/$TAG" \
-            --title "Release $TAG" \
-            --body "Points the index entry at the new release asset. The digest is the sha256 of the asset attached to the $TAG release; review it against the release before merging."
+          bot="${APP_SLUG}[bot]"
+          id=$(gh api "/users/${bot}" --jq .id)
+          git config user.name "$bot"
+          git config user.email "${id}+${bot}@users.noreply.github.com"
+          git add index.json publishers.json
+          git commit -m "Release $(paste -sd ' ' "$RUNNER_TEMP/released")"
+          # Another merge may have landed meanwhile: rebase the index commit on it.
+          for attempt in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git pull --rebase origin main
+          done
+          echo "::error::Could not push the index commit; run the workflow again (it reuses the releases)"
+          exit 1

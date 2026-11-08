@@ -80,7 +80,7 @@ GroowHub is a GitHub-based registry. It needs no separate server.
 groowhub/
 ├── index.json              # registry index
 ├── packages/               # one directory per Template
-├── tools/update-index.mjs  # used by the release workflow
+├── tools/                  # release helpers (pending-releases, update-index)
 └── .github/                # validation, release, secret scan, CODEOWNERS
 ```
 
@@ -115,7 +115,7 @@ Templates can contain executable capabilities, so releases are controlled:
 - **Integrity**: archives are checked against their SHA-256 digest before extraction.
 - **Automated validation**: packages and index entries are checked with [`@opengroow/groowhub-cli`](https://www.npmjs.com/package/@opengroow/groowhub-cli) on every PR and push to `main`.
 - **Secret scanning**: Git history is scanned with [Gitleaks](https://github.com/gitleaks/gitleaks).
-- **Reviewed releases**: index updates require code-owner approval.
+- **Reviewed releases**: a version is released only by merging a code-owner-approved PR that bumps it.
 - **Controlled trust levels**: a release workflow can never assign or change `verification`.
 
 Digest verification protects integrity, not behavior: it does not guarantee that a Template's code is safe. Only install Templates from sources you trust.
