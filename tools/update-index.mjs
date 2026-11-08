@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Points a package's entry in index.json at a new release (run by the release
- * workflow, which then opens a PR with the result).
+ * workflow, which then commits the result to main).
  *
  *   node tools/update-index.mjs --index index.json --package packages/seo \
  *     --repository OpenGroow/groowhub --tag seo@1.2.0 --file dist/opengroow-seo-1.2.0.tgz

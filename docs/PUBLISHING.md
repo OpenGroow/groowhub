@@ -5,19 +5,42 @@ Official Templates are distributed through GitHub Releases and registered in
 
 ## Releasing a package
 
-1. Bump `version` in `packages/<name>/package.json` and merge the change.
-2. Push a tag `<name>@<version>` (for example `source@1.2.0`).
-3. The **Release** workflow runs `npm pack`, attaches the `.tgz` to a GitHub Release, and opens a PR that
-   updates the package's entry in `index.json` (`repository`, `tag`, `asset`,
-   `digest`).
-4. A code owner reviews and merges that PR. Only then does the new version
-   become installable.
+Releasing is merging: a reviewed PR that bumps `version` releases that version
+when it lands on `main`. There is no tag to push and no second PR.
 
-A package's **first** entry in `index.json` (`id`, `name`, `description`,
-`category`, `verification`) is written by a maintainer in a reviewed PR; the
-release workflow only moves an existing entry, it never grants a trust level.
+1. In your PR, bump `version` in the package's `package.json`
+   (`packages/<name>/` for a Template, `packages/publisher/<id>/` for a Publisher).
+2. A code owner reviews and merges it.
+3. The **Release** workflow sees that the index entry does not point at the
+   new version (`tools/pending-releases.mjs`), builds the package, creates the
+   tag and the GitHub Release on the merged commit, writes the new `tag`,
+   `asset` and `digest` into the index and commits it to `main`. The new
+   version is then installable.
 
-## Publishing a Publisher package
+A merge that does not change a version releases nothing. Tags are created by
+the workflow only, and they cannot be deleted or moved: a version whose tag
+exists without a release (a mistake) is burned, bump to the next one.
+
+| Kind | Folder | Tag | Index | Build |
+|---|---|---|---|---|
+| Template | `packages/<name>` | `<name>@<version>` | `index.json` | `npm pack` |
+| Publisher | `packages/publisher/<id>` | `publisher-<id>@<version>` | `publishers.json` | `groowhub pack publisher` |
+
+The `publisher-` prefix is reserved: no Template may be named `publisher-<x>`.
+For a Publisher, the index commit also refreshes the entry's `name`, `icon`
+(from `manifest.json`) and `description` (from `package.json`).
+
+A package's **first** index entry (`id`, `name`, `description`, `category` for
+a Template, `verification`) is written by a maintainer in a reviewed PR, with
+the tag of the version to release and the placeholder digest
+`sha256:000...0`; merging it releases that version. The workflow only moves an
+existing entry: it never adds one nor grants a trust level, and it skips a
+package that has none.
+
+If a run stops between the release and the index commit, run **Release**
+again (Actions, Release, Run workflow): it reuses the existing release.
+
+## Publisher packages
 
 Publisher packages (Postiz, ...) are not Templates: they hold code that the
 OpenGroow core runs (ADR-072 in the OpenGroow repository). They live in
@@ -25,19 +48,7 @@ OpenGroow core runs (ADR-072 in the OpenGroow repository). They live in
 `data/channel-options.json`, `src/index.ts` whose default export is the plugin)
 and are listed in their own index, `publishers.json`.
 
-1. Bump `version` in `packages/publisher/<id>/package.json` and merge the change.
-2. Push the tag `publisher-<id>@<version>` (for example `publisher-postiz@1.1.0`).
-   The `publisher-` prefix is reserved: no Template may be named `publisher-<x>`.
-3. The **Release** workflow builds the package with `npx @opengroow/groowhub-cli pack publisher`
-   (`groowhub pack publisher`, bundle + `npm pack`), attaches the `.tgz` to the GitHub Release and opens a PR
-   that moves the entry in `publishers.json` (`tag`, `asset`, `digest`) and
-   refreshes its `name`, `icon` (from `manifest.json`) and `description`
-   (from `package.json`).
-4. A code owner reviews and merges it.
-
-The first entry in `publishers.json` (including the placeholder digest
-`sha256:000...0` and the icon) is written by a maintainer in a reviewed PR,
-like for Templates. The plugin imports only *types* from
+The plugin imports only *types* from
 `@opengroow/publisher-sdk`, so it builds without the SDK. The SDK is not
 published: `pnpm typecheck` reads it from a checkout of the OpenGroow
 repository, in `.sdk/` (CI) or next to this one (`../OpenGroow`). `pnpm test`
@@ -63,13 +74,14 @@ The index decides what installs on users' deployments, so:
   required review from code owners (see `.github/CODEOWNERS`, set the real
   team), no force-push;
 - Settings, Actions, General: workflow permissions "Read repository contents"
-  by default, and "Allow GitHub Actions to create and approve pull requests"
-  enabled (the release workflow opens the index PR; PRs opened with
-  `GITHUB_TOKEN` do not trigger other workflows, so a maintainer may need to
-  push an empty commit or re-run **Validate** on it);
-- tag protection (or a ruleset) on `*@*` so only maintainers can release;
-- the workflows hold no secret from the OpenGroow repository: they use
-  `GITHUB_TOKEN` only.
+  by default;
+- a GitHub App for releases, installed on this repository only, with
+  "Contents: read and write": its id in the variable `RELEASE_APP_ID`, its
+  private key in the secret `RELEASE_APP_PRIVATE_KEY`, and the App added as a
+  bypass actor of the `main` ruleset so the **Release** workflow can commit
+  the index. It is the only credential the workflows hold;
+- a ruleset on tags `*@*` forbidding deletion and update, so a released
+  version can never be moved.
 
 ## Hub template in the OpenGroow repository
 
