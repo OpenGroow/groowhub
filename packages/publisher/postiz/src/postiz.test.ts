@@ -213,16 +213,30 @@ describe("Postiz adapter: review fixes", () => {
     expect(post(calls).settings).toMatchObject({ __type: "youtube", type: "public", title: "First line" });
   });
 
-  it("drops the video-only TikTok options from a photo post", async () => {
+  it("sends duet and stitch as booleans on a TikTok photo post (Postiz answers 400 without them) and autoAddMusic only there", async () => {
     const calls = stub();
     await postizAdapter.publish(CONN, {
-      channelId: "c", channelService: "tiktok", settings: { duet: true, stitch: true },
+      channelId: "c", channelService: "tiktok",
+      publishable: { kind: "carousel", slideUrls: ["https://x.test/1.png", "https://x.test/2.png"], caption: "c" },
+    });
+    expect(post(calls).settings).toMatchObject({ duet: false, stitch: false, autoAddMusic: "no" });
+    const video = stub();
+    await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok", settings: { autoAddMusic: "yes" },
+      publishable: { kind: "video", videoUrl: "https://x.test/v.mp4", caption: "c" },
+    });
+    const settings = post(video).settings;
+    expect(settings).toMatchObject({ duet: true, stitch: true });
+    expect(settings).not.toHaveProperty("autoAddMusic");
+  });
+
+  it("keeps a stored duet or stitch, and replaces one that is not a boolean", async () => {
+    const calls = stub();
+    await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok", settings: { duet: true, stitch: "yes" },
       publishable: { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" },
     });
-    const settings = post(calls).settings;
-    expect(settings).not.toHaveProperty("duet");
-    expect(settings).not.toHaveProperty("stitch");
-    expect(settings).toHaveProperty("autoAddMusic");
+    expect(post(calls).settings).toMatchObject({ duet: true, stitch: false });
   });
 
   it("returns an error, not an exception, for a media URL with a stray '%'", async () => {
