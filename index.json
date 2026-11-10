@@ -17,9 +17,9 @@
       "name": "MoneyPrinterTurbo Agent",
       "description": "Produces short-form reels from a single prompt through your own moneyprinterturbo-mcp server, and publishes them after human review.",
       "repository": "OpenGroow/groowhub",
-      "tag": "moneyprinterturbo@1.2.0",
-      "asset": "opengroow-moneyprinterturbo-1.2.0.tgz",
-      "digest": "sha256:e802ba42835e72fe0f17338bcac22fce83f45eb97fbfb85fb36f7563c73def7d",
+      "tag": "moneyprinterturbo@1.3.0",
+      "asset": "opengroow-moneyprinterturbo-1.3.0.tgz",
+      "digest": "sha256:9c2fcb0d2652340bb5234f73c72f5f522abd55602e8d154842c5bb414a737c43",
       "category": "marketing",
       "verification": "official"
     }
