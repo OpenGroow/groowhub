@@ -7,10 +7,13 @@ mcpServers:
     activationUrl: http://localhost:4600/mcp
     publicBaseUrl: http://localhost:4600
     callTimeout: 600000
+statusCheck:
+  server: moneyprinterturbo-mcp
+  mcpTool: get_project_status
 requirements:
   - key: apiKey
     type: password
-    label: Project API key
+    label: MCP API key (MCP_API_KEY of moneyprinterturbo-mcp)
     required: true
     immutable: true
 missionTypes:
