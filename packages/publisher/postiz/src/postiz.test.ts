@@ -213,7 +213,7 @@ describe("Postiz adapter: review fixes", () => {
     expect(post(calls).settings).toMatchObject({ __type: "youtube", type: "public", title: "First line" });
   });
 
-  it("sends duet and stitch as booleans on a TikTok photo post (Postiz answers 400 without them) and autoAddMusic only there", async () => {
+  it("sends duet and stitch as booleans on a TikTok photo post (Postiz answers 400 without them)", async () => {
     const calls = stub();
     await postizAdapter.publish(CONN, {
       channelId: "c", channelService: "tiktok",
@@ -222,12 +222,31 @@ describe("Postiz adapter: review fixes", () => {
     expect(post(calls).settings).toMatchObject({ duet: false, stitch: false, autoAddMusic: "no" });
     const video = stub();
     await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok",
+      publishable: { kind: "video", videoUrl: "https://x.test/v.mp4", caption: "c" },
+    });
+    expect(post(video).settings).toMatchObject({ duet: true, stitch: true });
+  });
+
+  it("always sends autoAddMusic as yes or no (Postiz answers 400 otherwise, on a video too)", async () => {
+    const video = stub();
+    await postizAdapter.publish(CONN, {
       channelId: "c", channelService: "tiktok", settings: { autoAddMusic: "yes" },
       publishable: { kind: "video", videoUrl: "https://x.test/v.mp4", caption: "c" },
     });
-    const settings = post(video).settings;
-    expect(settings).toMatchObject({ duet: true, stitch: true });
-    expect(settings).not.toHaveProperty("autoAddMusic");
+    expect(post(video).settings).toMatchObject({ autoAddMusic: "no" });
+    const photo = stub();
+    await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok", settings: { autoAddMusic: "yes" },
+      publishable: { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" },
+    });
+    expect(post(photo).settings).toMatchObject({ autoAddMusic: "yes" });
+    const invalid = stub();
+    await postizAdapter.publish(CONN, {
+      channelId: "c", channelService: "tiktok", settings: { autoAddMusic: true },
+      publishable: { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" },
+    });
+    expect(post(invalid).settings).toMatchObject({ autoAddMusic: "no" });
   });
 
   it("keeps a stored duet or stitch, and replaces one that is not a boolean", async () => {
