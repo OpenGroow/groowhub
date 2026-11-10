@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { postizManifest, postizPlugin as postizAdapter } from "./postiz";
+import { postizSettings } from "./settings";
+import capabilities from "../data/capabilities.json";
 
 // Optional Publishable fields forwarded to Postiz (ADR-069 amendment): Postiz is
 // stubbed at fetch; we observe the body of the `posts` call.
@@ -314,3 +316,64 @@ describe("Postiz adapter: review fixes", () => {
     expect(queries).toHaveLength(2);
   });
 });
+
+// What Postiz's per-provider DTOs (libraries/nestjs-libraries/src/dtos/posts/providers-settings) require on every
+// post, audited from Postiz's source. A platform of capabilities.json missing here has not been audited: audit it
+// (a required field Postiz does not get answers 400) and add it, with [] when nothing is required.
+const REQUIRED_BY_POSTIZ: Record<string, string[]> = {
+  x: ["who_can_reply_post"],
+  linkedin: [],
+  "linkedin-page": [],
+  reddit: ["subreddit"],
+  instagram: ["post_type"],
+  "instagram-standalone": ["post_type"],
+  facebook: [],
+  youtube: ["title", "type"],
+  gmb: [],
+  tiktok: ["privacy_level", "duet", "stitch", "comment", "autoAddMusic", "brand_content_toggle", "brand_organic_toggle", "content_posting_method"],
+  pinterest: ["board"],
+  dribbble: ["title"],
+  bluesky: [],
+  wrapcast: [],
+  tumblr: [],
+};
+
+describe("settings required by Postiz's providers", () => {
+  it("has every platform of capabilities.json audited", () => {
+    expect(Object.keys(capabilities.platforms).sort()).toEqual(Object.keys(REQUIRED_BY_POSTIZ).sort());
+  });
+
+  // What the owner supplies on the channel: the Pinterest board, the Reddit settings.
+  const STORED: Record<string, Record<string, unknown>> = {
+    pinterest: { board: "123" },
+    reddit: { subreddit: [{ value: { subreddit: "r", title: "t", type: "self" } }] },
+  };
+
+  for (const [service, required] of Object.entries(REQUIRED_BY_POSTIZ)) {
+    for (const kind of ["video", "image"] as const) {
+      it(`sends ${required.length ? required.join(", ") : "nothing required"} on a ${kind} post to ${service}`, () => {
+        const publishable =
+          kind === "video"
+            ? { kind, videoUrl: "https://x.test/v.mp4", caption: "caption", title: "t" }
+            : { kind, imageUrl: "https://x.test/i.png", caption: "caption", title: "t" };
+        const res = postizSettings(service, publishable, STORED[service]);
+        expect(res.ok).toBe(true);
+        if (res.ok) for (const key of required) expect(res.settings[key], key).not.toBeUndefined();
+      });
+    }
+  }
+
+  it("answers Dribbble's title from the caption when the Publishable has none", () => {
+    const res = postizSettings("dribbble", { kind: "image", imageUrl: "https://x.test/i.png", caption: "\nFirst line\nmore" }, undefined);
+    expect(res).toMatchObject({ ok: true, settings: { title: "First line" } });
+  });
+
+  it("refuses Dribbble without a title or a caption, and Reddit without settings, with a clear message", () => {
+    const dribbble = postizSettings("dribbble", { kind: "image", imageUrl: "https://x.test/i.png" }, undefined);
+    expect(dribbble).toMatchObject({ ok: false });
+    const reddit = postizSettings("reddit", { kind: "image", imageUrl: "https://x.test/i.png", caption: "c" }, undefined);
+    expect(reddit).toMatchObject({ ok: false });
+    expect(JSON.stringify(reddit)).toContain("Reddit is not supported yet");
+  });
+});
+
