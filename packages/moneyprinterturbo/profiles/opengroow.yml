@@ -1,0 +1,70 @@
+schemaVersion: 1
+category: marketing
+mcpServers:
+  - name: moneyprinterturbo-mcp
+    transport: streamable-http
+    url: http://host.docker.internal:4600/mcp
+    activationUrl: http://localhost:4600/mcp
+    publicBaseUrl: http://localhost:4600
+    callTimeout: 600000
+requirements:
+  - key: apiKey
+    type: password
+    label: Project API key
+    required: true
+    immutable: true
+missionTypes:
+  - type: create_reel
+    label: Create reel
+    agentsMd: create_reel.md
+    contextProviders:
+      - observation-production-source
+    payload: '{"prompt":""}'
+    fields:
+      - key: prompt
+        label: Subject
+        type: text
+        required: true
+    publish:
+      kind: video
+      resource:
+        tool: get_video
+    review:
+      kind: video
+      server: moneyprinterturbo-mcp
+      path: /videos/{id}/final
+      actions:
+        - key: approve
+          label: Validate
+          requiredStatus: to_validate
+          transition: approved
+        - key: publish
+          label: Publish
+          requiredStatus: approved
+          transition: done
+        - key: reject
+          label: Reject with feedback
+          requiredStatus: to_validate
+          inputs:
+            - key: feedback
+              label: Review feedback
+              type: text
+              required: true
+          effect:
+            kind: revision_run
+            feedbackKey: feedback
+          transition: doing
+externalJobsByMissionType:
+  create_reel:
+    produce_video:
+      server: moneyprinterturbo-mcp
+      mcpTool: get_run_status
+      statusField: status
+      terminalStates:
+        completed:
+          - completed
+        failed:
+          - failed
+      resultStatus: needs_human_review
+      artifactKind: video
+      onComplete: terminal

@@ -11,6 +11,17 @@
       "digest": "sha256:817450e4697f1e8918a3486472f2d3d84acf50164a320ab58762a67cbdcfaf07",
       "category": "system",
       "verification": "official"
+    },
+    {
+      "id": "@opengroow/moneyprinterturbo",
+      "name": "MoneyPrinterTurbo Agent",
+      "description": "Produces short-form reels from a single prompt through your own moneyprinterturbo-mcp server, and publishes them after human review.",
+      "repository": "OpenGroow/groowhub",
+      "tag": "moneyprinterturbo@1.2.0",
+      "asset": "opengroow-moneyprinterturbo-1.2.0.tgz",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "category": "marketing",
+      "verification": "official"
     }
   ]
 }
