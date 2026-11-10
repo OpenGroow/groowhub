@@ -1,0 +1,7 @@
+{
+  "name": "@opengroow/moneyprinterturbo",
+  "version": "1.2.0",
+  "openclaw": {
+    "claw": "CLAW.md"
+  }
+}
