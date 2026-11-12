@@ -1,0 +1,7 @@
+{
+  "name": "@opengroow/publisher-github",
+  "version": "1.0.0",
+  "description": "Publish site articles to a GitHub repository",
+  "license": "AGPL-3.0-only",
+  "type": "module"
+}

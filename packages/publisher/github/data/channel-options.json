@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "adapter": "github",
+  "platforms": {
+    "github": [
+      { "key": "branch", "label": "Branch (empty: the repository's default branch)", "type": "text", "placeholder": "main" },
+      { "key": "contentBase", "label": "Folder of the article files", "type": "text", "placeholder": "src/content/blog" },
+      { "key": "coverBase", "label": "Folder of the cover images", "type": "text", "placeholder": "public/images/blog" },
+      { "key": "publicBase", "label": "Public path of the cover images on the site", "type": "text", "placeholder": "/images/blog" },
+      { "key": "articleBaseUrl", "label": "URL of the articles on the site", "type": "text", "placeholder": "https://example.com/blog" }
+    ]
+  }
+}

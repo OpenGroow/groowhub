@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "adapter": "github",
+  "source": "https://docs.github.com/en/rest/git",
+  "platforms": {
+    "github": {
+      "name": "GitHub",
+      "article": "supported",
+      "video": "unsupported",
+      "image": "unsupported",
+      "carousel": "unsupported",
+      "reasons": {
+        "video": "a site repository takes articles",
+        "image": "a site repository takes articles",
+        "carousel": "a site repository takes articles"
+      }
+    }
+  }
+}
