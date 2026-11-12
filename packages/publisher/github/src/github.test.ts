@@ -24,7 +24,8 @@ const ARTICLE = {
 };
 const COVER = new Uint8Array([82, 73, 70, 70, 1, 2, 3]);
 
-type Commit = { sha: string; parent?: string; files: Map<string, string>; date: string };
+type Person = { name: string; email: string; date: string };
+type Commit = { sha: string; parent?: string; files: Map<string, string>; date: string; author?: Person; committer?: Person };
 type Fake = {
   repos: Array<{ full_name: string; default_branch: string; permissions: { push: boolean } }>;
   branches: Map<string, string>; // "<repo>@<branch>" -> head sha
@@ -69,7 +70,7 @@ async function handle(url: URL, init: RequestInit | undefined): Promise<Response
   expect(url.origin).toBe("https://api.github.com");
   expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer ghp_token");
   const path = decodeURIComponent(url.pathname);
-  if (path === "/user") return json({ login: "octo" });
+  if (path === "/user") return json({ login: "octo", id: 42, name: "Octo Cat" });
   if (path === "/user/repos") {
     const page = Number(url.searchParams.get("page") ?? "1");
     return json(page === 1 ? fake.repos : []);
@@ -107,8 +108,8 @@ async function handle(url: URL, init: RequestInit | undefined): Promise<Response
   }
   if (rest === "/git/commits" && method === "POST") {
     const s = sha();
-    const date = "2026-11-12T10:00:00Z";
-    fake.commits.set(s, { sha: s, parent: body.parents[0], files: fake.trees.get(body.tree)!, date });
+    const date = body.committer?.date ?? "2026-11-12T10:00:00Z";
+    fake.commits.set(s, { sha: s, parent: body.parents[0], files: fake.trees.get(body.tree)!, date, author: body.author, committer: body.committer });
     return json({ sha: s, committer: { date } }, 201);
   }
   if ((r = rest.match(/^\/git\/refs\/heads\/(.+)$/)) && method === "PATCH") {
@@ -129,7 +130,7 @@ async function handle(url: URL, init: RequestInit | undefined): Promise<Response
       if (c.files.get(wanted) !== before) out.push(c.sha);
       s = c.parent;
     }
-    return json(out.map((s) => ({ sha: s })));
+    return json(out.map((s) => ({ sha: s, commit: { committer: { date: fake.commits.get(s)!.date } } })));
   }
   if ((r = rest.match(/^\/commits\/(.+)$/))) {
     const c = fake.commits.get(r[1]!);
@@ -214,6 +215,10 @@ describe("GitHub Publisher: publish", () => {
       ].join("\n"),
     );
     expect(files.get("public/images/blog/my-first-post.webp")).toBe(b64(COVER));
+    // publishedAt is the commit's own date, by the token's account.
+    const commit = fake.commits.get(fake.branches.get("acme/site@main")!)!;
+    expect(commit.committer).toEqual({ name: "Octo Cat", email: "42+octo@users.noreply.github.com", date: publishedAt });
+    expect(commit.author).toEqual(commit.committer);
     // One commit on top of the previous head.
     expect(fake.calls.filter((c) => c.method === "POST" && c.url.endsWith("/git/commits"))).toHaveLength(1);
     // Media are read without a key (ADR-074).
@@ -324,6 +329,17 @@ describe("GitHub Publisher: reconcile and status", () => {
       ok: true,
       post: { externalId: commit, status: "published", externalUrl: "https://example.com/blog/my-first-post" },
     });
+  });
+
+  it("does not attach a file committed before the attempt: the send then fails on it", async () => {
+    seedRepo("acme/site", { "src/content/blog/my-first-post.md": "someone else's" });
+    const attemptStartedAt = Date.parse("2026-06-01T00:00:00Z");
+    expect(await githubPlugin.findPost(CONN, { ...query, attemptStartedAt, attemptDate: attemptStartedAt })).toEqual({ ok: true, post: null });
+  });
+
+  it("cannot check when GitHub fails to answer: uncertain", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ message: "boom" }, 503)));
+    expect(await githubPlugin.findPost(CONN, query)).toMatchObject({ ok: false, uncertain: true });
   });
 
   it("cannot reconcile without the article", async () => {
