@@ -10,35 +10,29 @@
         "placeholder": "main"
       },
       {
-        "key": "siteFolder",
-        "label": "Folder of the site in the repository (empty: the root)",
-        "type": "text",
-        "placeholder": "apps/web"
-      },
-      {
         "key": "articlesFolder",
-        "label": "Folder of the articles, in the site (given to createBlogClient)",
+        "label": "Articles folder in the repository",
         "type": "text",
-        "placeholder": "content/blog",
+        "placeholder": "apps/web/content/blog",
         "required": true
       },
       {
         "key": "coversFolder",
-        "label": "Folder of the covers, in the site",
+        "label": "Covers folder in the repository",
         "type": "text",
-        "placeholder": "public/blog",
+        "placeholder": "apps/web/public/blog",
         "required": true
       },
       {
         "key": "coversPath",
-        "label": "URL path of the covers on the site (written in the frontmatter)",
+        "label": "Covers URL path, written in each article's frontmatter",
         "type": "text",
         "placeholder": "/blog",
         "required": true
       },
       {
         "key": "articleBaseUrl",
-        "label": "URL of the articles",
+        "label": "Articles URL on the site",
         "type": "text",
         "placeholder": "https://your-site.com/blog",
         "required": true

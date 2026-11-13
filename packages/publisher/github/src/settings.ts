@@ -1,20 +1,18 @@
 import type { PublisherResult } from "@opengroow/publisher-sdk";
 
 // The options of a channel (`channel-options.json`). The Publisher writes to a
-// site built on @megaclaw/blog-utils: its articles are `<site>/<articlesFolder>/<slug>.md`
-// (the directory the site gives `createBlogClient`: blog-utils does not impose one).
-// Its covers are written to `<site>/<coversFolder>/<slug>.webp` and named in the
-// frontmatter as `<coversPath>/<slug>.webp`: where the site serves its static files
-// depends on its framework (`public/` for Next.js, `static/` for SvelteKit), so both
-// are asked, nothing is derived.
+// site built on @megaclaw/blog-utils. Every folder is given from the root of the
+// repository, as GitHub shows it: blog-utils imposes no directory for the
+// articles, and where a site serves its static files depends on its framework
+// (`public/` for Next.js, `static/` for SvelteKit), so nothing is derived.
 
 export type Layout = { branch?: string; contentBase: string; coverBase: string; publicBase: string; articleBaseUrl: string };
 
 const LABELS = {
-  articlesFolder: "Folder of the articles",
-  coversFolder: "Folder of the covers",
-  coversPath: "URL path of the covers",
-  articleBaseUrl: "URL of the articles",
+  articlesFolder: "Articles folder",
+  coversFolder: "Covers folder",
+  coversPath: "Covers URL path",
+  articleBaseUrl: "Articles URL",
 } as const;
 const REQUIRED = ["articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"] as const;
 
@@ -24,15 +22,14 @@ export function layoutOf(settings: Record<string, unknown> | undefined): Publish
   if (missing.length > 0) {
     return { ok: false, error: `Set ${missing.map((key) => LABELS[key]).join(", ")} on this channel (Publishers page)` };
   }
-  const site = text("siteFolder").replace(/^\/+|\/+$/g, "");
-  const publicBase = `/${text("coversPath").replace(/^\/+|\/+$/g, "")}`.replace(/\/$/, "");
+  const folder = (key: string) => text(key).replace(/^\/+|\/+$/g, "");
   return {
     ok: true,
     layout: {
       ...(text("branch") ? { branch: text("branch") } : {}),
-      contentBase: join(site, text("articlesFolder").replace(/^\/+|\/+$/g, "")),
-      coverBase: join(site, text("coversFolder").replace(/^\/+|\/+$/g, "")),
-      publicBase,
+      contentBase: folder("articlesFolder"),
+      coverBase: folder("coversFolder"),
+      publicBase: `/${folder("coversPath")}`.replace(/\/$/, ""),
       articleBaseUrl: text("articleBaseUrl").replace(/\/+$/, ""),
     },
   };

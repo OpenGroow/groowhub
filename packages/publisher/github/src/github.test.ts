@@ -7,11 +7,10 @@ import { githubManifest, githubPlugin } from "./github";
 
 const CONN = { url: "https://api.github.com", apiKey: "ghp_token" };
 const MCP = "https://mcp.example.com";
-// A blog-utils site in a monorepo: articles under apps/web/content/blog, covers served from apps/web/public/images/blog.
+// A blog-utils site in a monorepo (apps/web): every folder is given from the root of the repository.
 const SETTINGS = {
-  siteFolder: "/apps/web/",
-  articlesFolder: "content/blog/",
-  coversFolder: "public/images/blog",
+  articlesFolder: "/apps/web/content/blog/",
+  coversFolder: "apps/web/public/images/blog",
   coversPath: "images/blog/",
   articleBaseUrl: "https://example.com/blog/",
 };
@@ -161,7 +160,7 @@ describe("GitHub Publisher: manifest and data", () => {
     expect(githubManifest).toMatchObject({ id: "github", name: "Blog Utils (GitHub)", scheduling: false });
     expect(githubPlugin.capabilities.platforms.github).toMatchObject({ article: "supported", video: "unsupported", image: "unsupported", carousel: "unsupported" });
     expect(githubPlugin.capabilities.platforms.github!.reasons?.video).toBe("a site repository takes articles");
-    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
+    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
     // blog-utils imposes no directory: the articles folder is asked, never assumed.
     expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
     // The package icon is Blog Utils; the platform's logo, shown on the repository channels, is GitHub's.
@@ -207,7 +206,7 @@ describe("GitHub Publisher: publish", () => {
   beforeEach(() => seedRepo("acme/site", { "README.md": "readme" }));
 
   it("writes the cover to the folder it is given, whatever the framework serves it from", async () => {
-    const res = await publish({ settings: { ...SETTINGS, siteFolder: "", coversFolder: "static/covers", coversPath: "/covers" } });
+    const res = await publish({ settings: { ...SETTINGS, articlesFolder: "content/blog", coversFolder: "static/covers", coversPath: "/covers" } });
     expect(res).toMatchObject({ ok: true });
     const files = filesOn("acme/site");
     expect(files.has("static/covers/my-first-post.webp")).toBe(true);
@@ -304,7 +303,7 @@ describe("GitHub Publisher: publish", () => {
   it("refuses anything but an article, and names a missing channel option", async () => {
     expect(await publish({ publishable: { kind: "image", imageUrl: "https://x/i.png" } })).toMatchObject({ ok: false, error: expect.stringMatching(/article/) });
     const { articleBaseUrl: _a, ...settings } = SETTINGS;
-    expect(await publish({ settings })).toMatchObject({ ok: false, error: "Set URL of the articles on this channel (Publishers page)" });
+    expect(await publish({ settings })).toMatchObject({ ok: false, error: "Set Articles URL on this channel (Publishers page)" });
   });
 
   it("asks the core right before moving the branch, and stops when another caller owns the Publication", async () => {
