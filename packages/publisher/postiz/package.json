@@ -1,6 +1,6 @@
 {
   "name": "@opengroow/publisher-postiz",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Publish through a Postiz instance",
   "license": "AGPL-3.0-only",
   "type": "module"

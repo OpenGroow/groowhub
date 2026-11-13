@@ -339,8 +339,16 @@ const REQUIRED_BY_POSTIZ: Record<string, string[]> = {
 };
 
 describe("settings required by Postiz's providers", () => {
+  it("offers only Instagram, Pinterest and TikTok, each with its logo shipped in the package (ADR-075)", () => {
+    expect(Object.keys(capabilities.platforms).sort()).toEqual(["instagram", "instagram-standalone", "pinterest", "tiktok"]);
+    for (const entry of Object.values(capabilities.platforms) as Array<{ icon?: string }>) {
+      expect(entry.icon).toMatch(/^data:image\/png;base64,/);
+    }
+  });
+
   it("has every platform of capabilities.json audited", () => {
-    expect(Object.keys(capabilities.platforms).sort()).toEqual(Object.keys(REQUIRED_BY_POSTIZ).sort());
+    // capabilities.json declares only the platforms OpenGroow offers (ADR-075); the audit may cover more.
+    expect(Object.keys(capabilities.platforms).filter((p) => !(p in REQUIRED_BY_POSTIZ))).toEqual([]);
   });
 
   // What the owner supplies on the channel: the Pinterest board, the Reddit settings.
