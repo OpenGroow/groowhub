@@ -1,6 +1,6 @@
 {
   "name": "@opengroow/publisher-github",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "Publish articles to the GitHub repository of a blog-utils site",
   "license": "AGPL-3.0-only",
   "type": "module"
