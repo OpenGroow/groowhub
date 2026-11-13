@@ -5,15 +5,14 @@
     "github": [
       {
         "key": "branch",
-        "label": "Branch (empty: the repository's default branch)",
+        "label": "Branch",
         "type": "text",
         "placeholder": "main"
       },
       {
         "key": "rootFolder",
-        "label": "Root folder (empty: the repository's root)",
-        "type": "text",
-        "placeholder": "apps/web"
+        "label": "Root folder",
+        "type": "text"
       },
       {
         "key": "articlesFolder",
