@@ -16,6 +16,13 @@
         "placeholder": "apps/web"
       },
       {
+        "key": "articlesFolder",
+        "label": "Folder of the articles, in the site (given to createBlogClient)",
+        "type": "text",
+        "placeholder": "content/blog",
+        "required": true
+      },
+      {
         "key": "coversPath",
         "label": "Public path of the covers",
         "type": "text",

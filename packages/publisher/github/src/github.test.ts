@@ -10,6 +10,7 @@ const MCP = "https://mcp.example.com";
 // A blog-utils site in a monorepo: articles under apps/web/content/blog, covers served from apps/web/public/images/blog.
 const SETTINGS = {
   siteFolder: "/apps/web/",
+  articlesFolder: "content/blog/",
   coversPath: "images/blog/",
   articleBaseUrl: "https://example.com/blog/",
 };
@@ -159,9 +160,9 @@ describe("GitHub Publisher: manifest and data", () => {
     expect(githubManifest).toMatchObject({ id: "github", name: "Blog Utils (GitHub)", scheduling: false });
     expect(githubPlugin.capabilities.platforms.github).toMatchObject({ article: "supported", video: "unsupported", image: "unsupported", carousel: "unsupported" });
     expect(githubPlugin.capabilities.platforms.github!.reasons?.video).toBe("a site repository takes articles");
-    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "coversPath", "articleBaseUrl"]);
-    // A blog-utils site always reads its articles from content/blog: only what differs between sites is asked.
-    expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["coversPath", "articleBaseUrl"]);
+    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "articlesFolder", "coversPath", "articleBaseUrl"]);
+    // blog-utils imposes no directory: the articles folder is asked, never assumed.
+    expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["articlesFolder", "coversPath", "articleBaseUrl"]);
     // The package icon is Blog Utils; the platform's logo, shown on the repository channels, is GitHub's.
     expect(githubManifest.icon).not.toBe(githubPlugin.capabilities.platforms.github!.icon);
   });

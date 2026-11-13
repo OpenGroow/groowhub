@@ -1,19 +1,14 @@
 import type { PublisherResult } from "@opengroow/publisher-sdk";
 
 // The options of a channel (`channel-options.json`). The Publisher writes to a
-// site built on @megaclaw/blog-utils: its articles are `<site>/content/blog/<slug>.md`
-// (the directory every such site gives `createBlogClient`), and its covers are
-// served by the site from `<site>/public<coversPath>`. Only what differs between
-// sites is asked: where the site is in the repository, where it serves covers,
-// and the URL of its articles.
+// site built on @megaclaw/blog-utils: its articles are `<site>/<articlesFolder>/<slug>.md`
+// (the directory the site gives `createBlogClient`: blog-utils does not impose one),
+// and its covers are served by the site from `<site>/public<coversPath>`.
 
 export type Layout = { branch?: string; contentBase: string; coverBase: string; publicBase: string; articleBaseUrl: string };
 
-/** The blog-utils directory of the articles, relative to the site. */
-const BLOG_DIR = "content/blog";
-
-const LABELS = { coversPath: "Public path of the covers", articleBaseUrl: "URL of the articles" } as const;
-const REQUIRED = ["coversPath", "articleBaseUrl"] as const;
+const LABELS = { articlesFolder: "Folder of the articles", coversPath: "Public path of the covers", articleBaseUrl: "URL of the articles" } as const;
+const REQUIRED = ["articlesFolder", "coversPath", "articleBaseUrl"] as const;
 
 export function layoutOf(settings: Record<string, unknown> | undefined): PublisherResult<{ layout: Layout }> {
   const text = (key: string) => (typeof settings?.[key] === "string" ? (settings[key] as string).trim() : "");
@@ -27,7 +22,7 @@ export function layoutOf(settings: Record<string, unknown> | undefined): Publish
     ok: true,
     layout: {
       ...(text("branch") ? { branch: text("branch") } : {}),
-      contentBase: join(site, BLOG_DIR),
+      contentBase: join(site, text("articlesFolder").replace(/^\/+|\/+$/g, "")),
       coverBase: join(site, `public${publicBase}`),
       publicBase,
       articleBaseUrl: text("articleBaseUrl").replace(/\/+$/, ""),
