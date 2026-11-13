@@ -160,7 +160,9 @@ export const githubPlugin: PublisherPlugin = {
       for (const repo of res.body as Array<Record<string, unknown>>) {
         const name = repo?.full_name;
         if (typeof name !== "string" || (repo.permissions as { push?: unknown } | undefined)?.push !== true) continue;
-        channels.push({ id: name, name, service: "github", profile: name });
+        // The repository's picture is its owner's avatar (user or organization), as GitHub shows it.
+        const avatar = (repo.owner as { avatar_url?: unknown } | undefined)?.avatar_url;
+        channels.push({ id: name, name, service: "github", profile: name, ...(typeof avatar === "string" && avatar.startsWith("https://") ? { picture: avatar } : {}) });
       }
       if (res.body.length < 100) break;
     }

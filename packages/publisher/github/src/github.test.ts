@@ -27,7 +27,7 @@ const COVER = new Uint8Array([82, 73, 70, 70, 1, 2, 3]);
 type Person = { name: string; email: string; date: string };
 type Commit = { sha: string; parent?: string; files: Map<string, string>; date: string; author?: Person; committer?: Person };
 type Fake = {
-  repos: Array<{ full_name: string; default_branch: string; permissions: { push: boolean } }>;
+  repos: Array<{ full_name: string; default_branch: string; permissions: { push: boolean }; owner?: { avatar_url: string } }>;
   branches: Map<string, string>; // "<repo>@<branch>" -> head sha
   commits: Map<string, Commit>; // sha -> commit (its whole tree)
   trees: Map<string, Map<string, string>>;
@@ -181,6 +181,19 @@ describe("GitHub Publisher: connection and channels", () => {
     fake.repos.push({ full_name: "acme/read-only", default_branch: "main", permissions: { push: false } });
     const res = await githubPlugin.listChannels(CONN);
     expect(res).toEqual({ ok: true, channels: [{ id: "acme/site", name: "acme/site", service: "github", profile: "acme/site" }] });
+  });
+
+  it("gives each repository its owner's avatar as picture", async () => {
+    fake.repos.push({ full_name: "acme/blog", default_branch: "main", permissions: { push: true }, owner: { avatar_url: "https://avatars.githubusercontent.com/u/1?v=4" } });
+    fake.repos.push({ full_name: "acme/odd", default_branch: "main", permissions: { push: true }, owner: { avatar_url: "javascript:alert(1)" } });
+    const res = await githubPlugin.listChannels(CONN);
+    expect(res).toEqual({
+      ok: true,
+      channels: [
+        { id: "acme/blog", name: "acme/blog", service: "github", profile: "acme/blog", picture: "https://avatars.githubusercontent.com/u/1?v=4" },
+        { id: "acme/odd", name: "acme/odd", service: "github", profile: "acme/odd" },
+      ],
+    });
   });
 });
 
