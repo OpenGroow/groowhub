@@ -23,10 +23,17 @@
         "required": true
       },
       {
-        "key": "coversPath",
-        "label": "Public path of the covers",
+        "key": "coversFolder",
+        "label": "Folder of the covers, in the site",
         "type": "text",
-        "placeholder": "/blog-covers",
+        "placeholder": "public/blog",
+        "required": true
+      },
+      {
+        "key": "coversPath",
+        "label": "URL path of the covers on the site (written in the frontmatter)",
+        "type": "text",
+        "placeholder": "/blog",
         "required": true
       },
       {

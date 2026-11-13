@@ -11,6 +11,7 @@ const MCP = "https://mcp.example.com";
 const SETTINGS = {
   siteFolder: "/apps/web/",
   articlesFolder: "content/blog/",
+  coversFolder: "public/images/blog",
   coversPath: "images/blog/",
   articleBaseUrl: "https://example.com/blog/",
 };
@@ -160,9 +161,9 @@ describe("GitHub Publisher: manifest and data", () => {
     expect(githubManifest).toMatchObject({ id: "github", name: "Blog Utils (GitHub)", scheduling: false });
     expect(githubPlugin.capabilities.platforms.github).toMatchObject({ article: "supported", video: "unsupported", image: "unsupported", carousel: "unsupported" });
     expect(githubPlugin.capabilities.platforms.github!.reasons?.video).toBe("a site repository takes articles");
-    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "articlesFolder", "coversPath", "articleBaseUrl"]);
+    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
     // blog-utils imposes no directory: the articles folder is asked, never assumed.
-    expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["articlesFolder", "coversPath", "articleBaseUrl"]);
+    expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
     // The package icon is Blog Utils; the platform's logo, shown on the repository channels, is GitHub's.
     expect(githubManifest.icon).not.toBe(githubPlugin.capabilities.platforms.github!.icon);
   });
@@ -204,6 +205,14 @@ describe("GitHub Publisher: connection and channels", () => {
 
 describe("GitHub Publisher: publish", () => {
   beforeEach(() => seedRepo("acme/site", { "README.md": "readme" }));
+
+  it("writes the cover to the folder it is given, whatever the framework serves it from", async () => {
+    const res = await publish({ settings: { ...SETTINGS, siteFolder: "", coversFolder: "static/covers", coversPath: "/covers" } });
+    expect(res).toMatchObject({ ok: true });
+    const files = filesOn("acme/site");
+    expect(files.has("static/covers/my-first-post.webp")).toBe(true);
+    expect(files.get("content/blog/my-first-post.md")).toContain('cover: "/covers/my-first-post.webp"');
+  });
 
   it("commits the article and its cover in one commit, with the fixed frontmatter", async () => {
     const res = await publish();

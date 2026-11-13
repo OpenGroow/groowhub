@@ -2,13 +2,21 @@ import type { PublisherResult } from "@opengroow/publisher-sdk";
 
 // The options of a channel (`channel-options.json`). The Publisher writes to a
 // site built on @megaclaw/blog-utils: its articles are `<site>/<articlesFolder>/<slug>.md`
-// (the directory the site gives `createBlogClient`: blog-utils does not impose one),
-// and its covers are served by the site from `<site>/public<coversPath>`.
+// (the directory the site gives `createBlogClient`: blog-utils does not impose one).
+// Its covers are written to `<site>/<coversFolder>/<slug>.webp` and named in the
+// frontmatter as `<coversPath>/<slug>.webp`: where the site serves its static files
+// depends on its framework (`public/` for Next.js, `static/` for SvelteKit), so both
+// are asked, nothing is derived.
 
 export type Layout = { branch?: string; contentBase: string; coverBase: string; publicBase: string; articleBaseUrl: string };
 
-const LABELS = { articlesFolder: "Folder of the articles", coversPath: "Public path of the covers", articleBaseUrl: "URL of the articles" } as const;
-const REQUIRED = ["articlesFolder", "coversPath", "articleBaseUrl"] as const;
+const LABELS = {
+  articlesFolder: "Folder of the articles",
+  coversFolder: "Folder of the covers",
+  coversPath: "URL path of the covers",
+  articleBaseUrl: "URL of the articles",
+} as const;
+const REQUIRED = ["articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"] as const;
 
 export function layoutOf(settings: Record<string, unknown> | undefined): PublisherResult<{ layout: Layout }> {
   const text = (key: string) => (typeof settings?.[key] === "string" ? (settings[key] as string).trim() : "");
@@ -23,7 +31,7 @@ export function layoutOf(settings: Record<string, unknown> | undefined): Publish
     layout: {
       ...(text("branch") ? { branch: text("branch") } : {}),
       contentBase: join(site, text("articlesFolder").replace(/^\/+|\/+$/g, "")),
-      coverBase: join(site, `public${publicBase}`),
+      coverBase: join(site, text("coversFolder").replace(/^\/+|\/+$/g, "")),
       publicBase,
       articleBaseUrl: text("articleBaseUrl").replace(/\/+$/, ""),
     },
