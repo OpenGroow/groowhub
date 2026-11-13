@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "adapter": "github",
+  "platforms": {
+    "github": [
+      {
+        "key": "branch",
+        "label": "Branch",
+        "type": "text",
+        "placeholder": "main"
+      },
+      {
+        "key": "rootFolder",
+        "label": "Root folder",
+        "type": "text"
+      },
+      {
+        "key": "articlesFolder",
+        "label": "Folder path of the articles",
+        "type": "text",
+        "placeholder": "content/blog",
+        "required": true
+      },
+      {
+        "key": "coversFolder",
+        "label": "Folder path of the covers",
+        "type": "text",
+        "placeholder": "public/blog",
+        "required": true
+      },
+      {
+        "key": "coversPath",
+        "label": "Public blog URL",
+        "type": "text",
+        "placeholder": "/blog",
+        "required": true
+      },
+      {
+        "key": "articleBaseUrl",
+        "label": "Blog URL",
+        "type": "text",
+        "placeholder": "https://your-site.com/blog",
+        "required": true
+      }
+    ]
+  }
+}
