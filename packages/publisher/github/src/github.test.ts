@@ -158,7 +158,7 @@ const publish = (extra: Record<string, unknown> = {}) =>
 
 describe("GitHub Publisher: manifest and data", () => {
   it("declares that it cannot schedule, and takes articles only", () => {
-    expect(githubManifest).toMatchObject({ id: "github", name: "Blog Utils (GitHub)", scheduling: false });
+    expect(githubManifest).toMatchObject({ id: "github", name: "GitHub", scheduling: false });
     expect(githubPlugin.capabilities.platforms.github).toMatchObject({ article: "supported", video: "unsupported", image: "unsupported", carousel: "unsupported" });
     expect(githubPlugin.capabilities.platforms.github!.reasons?.video).toBe("a site repository takes articles");
     expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "rootFolder", "articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"]);
