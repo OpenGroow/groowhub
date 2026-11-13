@@ -10,29 +10,35 @@
         "placeholder": "main"
       },
       {
-        "key": "articlesFolder",
-        "label": "Articles folder in the repository",
+        "key": "rootFolder",
+        "label": "Root folder (empty: the repository's root)",
         "type": "text",
-        "placeholder": "apps/web/content/blog",
+        "placeholder": "apps/web"
+      },
+      {
+        "key": "articlesFolder",
+        "label": "Folder path of the articles",
+        "type": "text",
+        "placeholder": "content/blog",
         "required": true
       },
       {
         "key": "coversFolder",
-        "label": "Covers folder in the repository",
+        "label": "Folder path of the covers",
         "type": "text",
-        "placeholder": "apps/web/public/blog",
+        "placeholder": "public/blog",
         "required": true
       },
       {
         "key": "coversPath",
-        "label": "Covers URL path, written in each article's frontmatter",
+        "label": "Public blog URL",
         "type": "text",
         "placeholder": "/blog",
         "required": true
       },
       {
         "key": "articleBaseUrl",
-        "label": "Articles URL on the site",
+        "label": "Blog URL",
         "type": "text",
         "placeholder": "https://your-site.com/blog",
         "required": true

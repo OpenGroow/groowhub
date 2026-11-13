@@ -1,18 +1,18 @@
 import type { PublisherResult } from "@opengroow/publisher-sdk";
 
 // The options of a channel (`channel-options.json`). The Publisher writes to a
-// site built on @megaclaw/blog-utils. Every folder is given from the root of the
-// repository, as GitHub shows it: blog-utils imposes no directory for the
-// articles, and where a site serves its static files depends on its framework
-// (`public/` for Next.js, `static/` for SvelteKit), so nothing is derived.
+// site built on @megaclaw/blog-utils, at `rootFolder` in the repository (empty: its
+// root). The articles and covers folders are given from there: blog-utils imposes
+// no directory for the articles, and where a site serves its static files depends
+// on its framework (`public/` for Next.js, `static/` for SvelteKit), so nothing is derived.
 
 export type Layout = { branch?: string; contentBase: string; coverBase: string; publicBase: string; articleBaseUrl: string };
 
 const LABELS = {
-  articlesFolder: "Articles folder",
-  coversFolder: "Covers folder",
-  coversPath: "Covers URL path",
-  articleBaseUrl: "Articles URL",
+  articlesFolder: "Folder path of the articles",
+  coversFolder: "Folder path of the covers",
+  coversPath: "Public blog URL",
+  articleBaseUrl: "Blog URL",
 } as const;
 const REQUIRED = ["articlesFolder", "coversFolder", "coversPath", "articleBaseUrl"] as const;
 
@@ -27,8 +27,8 @@ export function layoutOf(settings: Record<string, unknown> | undefined): Publish
     ok: true,
     layout: {
       ...(text("branch") ? { branch: text("branch") } : {}),
-      contentBase: folder("articlesFolder"),
-      coverBase: folder("coversFolder"),
+      contentBase: join(folder("rootFolder"), folder("articlesFolder")),
+      coverBase: join(folder("rootFolder"), folder("coversFolder")),
       publicBase: `/${folder("coversPath")}`.replace(/\/$/, ""),
       articleBaseUrl: text("articleBaseUrl").replace(/\/+$/, ""),
     },
