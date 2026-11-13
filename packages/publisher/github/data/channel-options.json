@@ -3,11 +3,32 @@
   "adapter": "github",
   "platforms": {
     "github": [
-      { "key": "branch", "label": "Branch (empty: the repository's default branch)", "type": "text", "placeholder": "main" },
-      { "key": "contentBase", "label": "Folder of the article files", "type": "text", "placeholder": "src/content/blog" },
-      { "key": "coverBase", "label": "Folder of the cover images", "type": "text", "placeholder": "public/images/blog" },
-      { "key": "publicBase", "label": "Public path of the cover images on the site", "type": "text", "placeholder": "/images/blog" },
-      { "key": "articleBaseUrl", "label": "URL of the articles on the site", "type": "text", "placeholder": "https://example.com/blog" }
+      {
+        "key": "branch",
+        "label": "Branch (empty: the repository's default branch)",
+        "type": "text",
+        "placeholder": "main"
+      },
+      {
+        "key": "siteFolder",
+        "label": "Folder of the site in the repository (empty: the root)",
+        "type": "text",
+        "placeholder": "apps/web"
+      },
+      {
+        "key": "coversPath",
+        "label": "Public path of the covers",
+        "type": "text",
+        "placeholder": "/blog-covers",
+        "required": true
+      },
+      {
+        "key": "articleBaseUrl",
+        "label": "URL of the articles",
+        "type": "text",
+        "placeholder": "https://your-site.com/blog",
+        "required": true
+      }
     ]
   }
 }

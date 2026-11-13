@@ -1,26 +1,35 @@
 import type { PublisherResult } from "@opengroow/publisher-sdk";
 
-// The options of a GitHub channel (`channel-options.json`): where an article
-// and its cover go in the repository, and where the site shows them.
+// The options of a channel (`channel-options.json`). The Publisher writes to a
+// site built on @megaclaw/blog-utils: its articles are `<site>/content/blog/<slug>.md`
+// (the directory every such site gives `createBlogClient`), and its covers are
+// served by the site from `<site>/public<coversPath>`. Only what differs between
+// sites is asked: where the site is in the repository, where it serves covers,
+// and the URL of its articles.
 
 export type Layout = { branch?: string; contentBase: string; coverBase: string; publicBase: string; articleBaseUrl: string };
 
-const REQUIRED = ["contentBase", "coverBase", "publicBase", "articleBaseUrl"] as const;
+/** The blog-utils directory of the articles, relative to the site. */
+const BLOG_DIR = "content/blog";
+
+const LABELS = { coversPath: "Public path of the covers", articleBaseUrl: "URL of the articles" } as const;
+const REQUIRED = ["coversPath", "articleBaseUrl"] as const;
 
 export function layoutOf(settings: Record<string, unknown> | undefined): PublisherResult<{ layout: Layout }> {
   const text = (key: string) => (typeof settings?.[key] === "string" ? (settings[key] as string).trim() : "");
   const missing = REQUIRED.filter((key) => text(key) === "");
   if (missing.length > 0) {
-    return { ok: false, error: `Set ${missing.join(", ")} on this GitHub channel (Publishers page)` };
+    return { ok: false, error: `Set ${missing.map((key) => LABELS[key]).join(", ")} on this channel (Publishers page)` };
   }
-  const folder = (key: string) => text(key).replace(/^\/+|\/+$/g, "");
+  const site = text("siteFolder").replace(/^\/+|\/+$/g, "");
+  const publicBase = `/${text("coversPath").replace(/^\/+|\/+$/g, "")}`.replace(/\/$/, "");
   return {
     ok: true,
     layout: {
       ...(text("branch") ? { branch: text("branch") } : {}),
-      contentBase: folder("contentBase"),
-      coverBase: folder("coverBase"),
-      publicBase: text("publicBase").replace(/\/+$/, ""),
+      contentBase: join(site, BLOG_DIR),
+      coverBase: join(site, `public${publicBase}`),
+      publicBase,
       articleBaseUrl: text("articleBaseUrl").replace(/\/+$/, ""),
     },
   };

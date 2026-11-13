@@ -7,10 +7,10 @@ import { githubManifest, githubPlugin } from "./github";
 
 const CONN = { url: "https://api.github.com", apiKey: "ghp_token" };
 const MCP = "https://mcp.example.com";
+// A blog-utils site in a monorepo: articles under apps/web/content/blog, covers served from apps/web/public/images/blog.
 const SETTINGS = {
-  contentBase: "src/content/blog",
-  coverBase: "public/images/blog",
-  publicBase: "/images/blog",
+  siteFolder: "/apps/web/",
+  coversPath: "images/blog/",
   articleBaseUrl: "https://example.com/blog/",
 };
 const ARTICLE = {
@@ -156,10 +156,14 @@ const publish = (extra: Record<string, unknown> = {}) =>
 
 describe("GitHub Publisher: manifest and data", () => {
   it("declares that it cannot schedule, and takes articles only", () => {
-    expect(githubManifest).toMatchObject({ id: "github", name: "GitHub", scheduling: false });
+    expect(githubManifest).toMatchObject({ id: "github", name: "Blog Utils (GitHub)", scheduling: false });
     expect(githubPlugin.capabilities.platforms.github).toMatchObject({ article: "supported", video: "unsupported", image: "unsupported", carousel: "unsupported" });
     expect(githubPlugin.capabilities.platforms.github!.reasons?.video).toBe("a site repository takes articles");
-    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "contentBase", "coverBase", "publicBase", "articleBaseUrl"]);
+    expect(githubPlugin.channelOptions.platforms.github!.map((o) => o.key)).toEqual(["branch", "siteFolder", "coversPath", "articleBaseUrl"]);
+    // A blog-utils site always reads its articles from content/blog: only what differs between sites is asked.
+    expect(githubPlugin.channelOptions.platforms.github!.filter((o) => o.type === "text" && o.required).map((o) => o.key)).toEqual(["coversPath", "articleBaseUrl"]);
+    // The package icon is Blog Utils; the platform's logo, shown on the repository channels, is GitHub's.
+    expect(githubManifest.icon).not.toBe(githubPlugin.capabilities.platforms.github!.icon);
   });
 });
 
@@ -208,7 +212,7 @@ describe("GitHub Publisher: publish", () => {
     });
     const files = filesOn("acme/site");
     expect(files.get("README.md")).toBe("readme");
-    const markdown = files.get("src/content/blog/my-first-post.md")!;
+    const markdown = files.get("apps/web/content/blog/my-first-post.md")!;
     const publishedAt = markdown.match(/^publishedAt: "(.+)"$/m)?.[1];
     expect(Number.isNaN(Date.parse(publishedAt!))).toBe(false);
     expect(markdown).toBe(
@@ -227,7 +231,7 @@ describe("GitHub Publisher: publish", () => {
         "",
       ].join("\n"),
     );
-    expect(files.get("public/images/blog/my-first-post.webp")).toBe(b64(COVER));
+    expect(files.get("apps/web/public/images/blog/my-first-post.webp")).toBe(b64(COVER));
     // publishedAt is the commit's own date, by the token's account.
     const commit = fake.commits.get(fake.branches.get("acme/site@main")!)!;
     expect(commit.committer).toEqual({ name: "Octo Cat", email: "42+octo@users.noreply.github.com", date: publishedAt });
@@ -244,7 +248,7 @@ describe("GitHub Publisher: publish", () => {
     const { category: _c, ...article } = ARTICLE;
     fake.markdown = () => new Response("---\ntitle: other\n---\nBody\n");
     await publish({ publishable: article });
-    const markdown = filesOn("acme/site").get("src/content/blog/my-first-post.md")!;
+    const markdown = filesOn("acme/site").get("apps/web/content/blog/my-first-post.md")!;
     expect(markdown).not.toContain("category");
     expect(markdown).not.toContain("title: other");
     expect(markdown.endsWith("---\n\nBody\n")).toBe(true);
@@ -254,15 +258,15 @@ describe("GitHub Publisher: publish", () => {
     seedRepo("acme/site", { "README.md": "readme" }, "content");
     const res = await publish({ settings: { ...SETTINGS, branch: "content" } });
     expect(res.ok).toBe(true);
-    expect(filesOn("acme/site", "content").has("src/content/blog/my-first-post.md")).toBe(true);
-    expect(filesOn("acme/site", "main").has("src/content/blog/my-first-post.md")).toBe(false);
+    expect(filesOn("acme/site", "content").has("apps/web/content/blog/my-first-post.md")).toBe(true);
+    expect(filesOn("acme/site", "main").has("apps/web/content/blog/my-first-post.md")).toBe(false);
   });
 
   it("never overwrites: a file already at the content path fails the send, not uncertain", async () => {
-    seedRepo("acme/site", { "src/content/blog/my-first-post.md": "someone else's" });
+    seedRepo("acme/site", { "apps/web/content/blog/my-first-post.md": "someone else's" });
     const before = fake.branches.get("acme/site@main");
     const res = await publish();
-    expect(res).toEqual({ ok: false, error: "a file already exists at src/content/blog/my-first-post.md" });
+    expect(res).toEqual({ ok: false, error: "a file already exists at apps/web/content/blog/my-first-post.md" });
     expect(fake.branches.get("acme/site@main")).toBe(before);
   });
 
@@ -290,7 +294,7 @@ describe("GitHub Publisher: publish", () => {
   it("refuses anything but an article, and names a missing channel option", async () => {
     expect(await publish({ publishable: { kind: "image", imageUrl: "https://x/i.png" } })).toMatchObject({ ok: false, error: expect.stringMatching(/article/) });
     const { articleBaseUrl: _a, ...settings } = SETTINGS;
-    expect(await publish({ settings })).toMatchObject({ ok: false, error: expect.stringMatching(/articleBaseUrl/) });
+    expect(await publish({ settings })).toMatchObject({ ok: false, error: "Set URL of the articles on this channel (Publishers page)" });
   });
 
   it("asks the core right before moving the branch, and stops when another caller owns the Publication", async () => {
@@ -322,7 +326,7 @@ describe("GitHub Publisher: publish", () => {
     expect(res.ok).toBe(true);
     expect(beforePost).toHaveBeenCalledTimes(1);
     expect(filesOn("acme/site").get("README.md")).toBe("readme v2");
-    expect(filesOn("acme/site").has("src/content/blog/my-first-post.md")).toBe(true);
+    expect(filesOn("acme/site").has("apps/web/content/blog/my-first-post.md")).toBe(true);
   });
 });
 
@@ -345,7 +349,7 @@ describe("GitHub Publisher: reconcile and status", () => {
   });
 
   it("does not attach a file committed before the attempt: the send then fails on it", async () => {
-    seedRepo("acme/site", { "src/content/blog/my-first-post.md": "someone else's" });
+    seedRepo("acme/site", { "apps/web/content/blog/my-first-post.md": "someone else's" });
     const attemptStartedAt = Date.parse("2026-06-01T00:00:00Z");
     expect(await githubPlugin.findPost(CONN, { ...query, attemptStartedAt, attemptDate: attemptStartedAt })).toEqual({ ok: true, post: null });
   });
@@ -368,7 +372,7 @@ describe("GitHub Publisher: reconcile and status", () => {
       post: { status: "published", externalUrl: "https://example.com/blog/my-first-post" },
     });
     const files = new Map(filesOn("acme/site"));
-    files.delete("src/content/blog/my-first-post.md");
+    files.delete("apps/web/content/blog/my-first-post.md");
     seedRepo("acme/site", Object.fromEntries(files));
     expect(await githubPlugin.getStatus(CONN, commit, undefined, target)).toMatchObject({ ok: true, post: { status: "failed" } });
     expect(await githubPlugin.getStatus(CONN, "unknown".padEnd(40, "0"), undefined, target)).toMatchObject({ ok: true, post: { status: "failed" } });
