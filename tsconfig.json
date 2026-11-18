@@ -19,5 +19,5 @@
       ]
     }
   },
-  "include": ["packages/publisher/*/src/**/*.ts"]
+  "include": ["packages/publisher/*/src/**/*.ts", "packages/analytics/*/src/**/*.ts"]
 }

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "id": "@opengroow/analytics-postiz",
+      "name": "Postiz",
+      "description": "Read how a post performed from the statistics of a Postiz instance",
+      "repository": "OpenGroow/groowhub",
+      "tag": "analytics-postiz@1.0.0",
+      "asset": "opengroow-analytics-postiz-1.0.0.tgz",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "verification": "official"
+    }
+  ]
+}
