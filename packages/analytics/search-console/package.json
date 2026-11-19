@@ -1,0 +1,7 @@
+{
+  "name": "@opengroow/analytics-search-console",
+  "version": "1.0.0",
+  "description": "Read how a page performed from Google Search Console: clicks, impressions, click-through rate and average position",
+  "license": "AGPL-3.0-only",
+  "type": "module"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "search-console",
+  "name": "Google Search Console",
+  "contractVersion": 2,
+  "needs": "url",
+  "earliestDelayMs": 259200000,
+  "metrics": [
+    { "key": "clicks", "label": "Clicks", "type": "counter", "format": "number" },
+    { "key": "impressions", "label": "Impressions", "type": "counter", "format": "number" },
+    {
+      "key": "ctr",
+      "label": "CTR",
+      "type": "level",
+      "format": "percent",
+      "derive": { "sum": ["clicks"], "per": "impressions" }
+    },
+    { "key": "position", "label": "Position", "type": "level", "format": "number", "better": "lower" }
+  ],
+  "primary": "clicks",
+  "collect": ["3d", "7d", "28d"],
+  "secret": {
+    "label": "Service account key (JSON)",
+    "kind": "json",
+    "fields": ["client_email", "private_key"]
+  },
+  "needsUrl": false,
+  "options": [
+    {
+      "key": "property",
+      "label": "Search Console property (sc-domain:example.com or https://example.com/)",
+      "type": "text",
+      "default": ""
+    }
+  ]
+}

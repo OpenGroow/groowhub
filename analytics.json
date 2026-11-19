@@ -10,6 +10,16 @@
       "asset": "opengroow-analytics-postiz-1.0.0.tgz",
       "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "verification": "official"
+    },
+    {
+      "id": "@opengroow/analytics-search-console",
+      "name": "Google Search Console",
+      "description": "Read how a page performed from Google Search Console: clicks, impressions, click-through rate and average position",
+      "repository": "OpenGroow/groowhub",
+      "tag": "analytics-search-console@1.0.0",
+      "asset": "opengroow-analytics-search-console-1.0.0.tgz",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "verification": "official"
     }
   ]
 }

@@ -60,8 +60,8 @@ runs the plugins' tests; the **Validate** workflow checks the folders and `publi
 An Analytics Adapter (ADR-078) reads how a post performed. It is installed like
 a Publisher but is a package of its own, in `packages/analytics/<id>/`
 (`manifest.json` with the key it needs, its earliest delay and the options a
-Project can set, `data/metrics.json` mapping the labels of the service to the
-closed metric vocabulary, `src/index.ts` whose default export is the adapter),
+Project can set, the metrics it declares (contract 2), `data/metrics.json` mapping
+the labels of the service to those metric keys, `src/index.ts` whose default export is the adapter),
 tag `analytics-<id>@<version>`, listed in `analytics.json` and built with
 `groowhub pack analytics`. The `analytics-` prefix is reserved.
 
