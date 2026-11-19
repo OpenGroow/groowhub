@@ -1,0 +1,10 @@
+title = "groowhub gitleaks config"
+
+[extend]
+useDefault = true
+
+# Test fixtures: the Search Console Analytics Adapter tests sign a request with a throwaway
+# service-account key generated for the test, never a real credential.
+[allowlist]
+description = "Throwaway private keys of the Search Console adapter tests"
+paths = ['''packages/analytics/search-console/src/search-console\.test\.ts''']
