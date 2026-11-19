@@ -27,8 +27,8 @@
   "needsUrl": false,
   "options": [
     {
-      "key": "property",
-      "label": "Search Console property (sc-domain:example.com or https://example.com/)",
+      "key": "domain",
+      "label": "Domain of the site (example.com), as a domain property in Search Console",
       "type": "text",
       "default": ""
     }

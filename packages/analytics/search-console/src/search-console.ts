@@ -127,7 +127,7 @@ async function query(token: string, property: string, page: string, startDate: s
       res.status === 403
         ? " (add the service account's email as a user of the property in Search Console, Settings > Users and permissions, and check the Search Console API is enabled)"
         : res.status === 404
-          ? " (check the property: sc-domain:example.com or the exact https://example.com/ form)"
+          ? " (check the domain: the service account must be a user of the domain property sc-domain:<domain> in Search Console)"
           : "";
     return { ok: false, error: `Search Console responded ${res.status}${detail}${hint}` };
   }
@@ -137,9 +137,38 @@ async function query(token: string, property: string, page: string, startDate: s
   return { ok: true, row: rows[0] as Row | undefined };
 }
 
-function propertyOf(conn: AnalyticsConnection): string | undefined {
-  const value = conn.options?.property;
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+/**
+ * The option asks for a domain name only (`example.com`); the property is the domain property `sc-domain:example.com`.
+ * A pasted `https://www.example.com/blog` or `sc-domain:example.com` is reduced to the same domain.
+ */
+export function propertyOf(conn: AnalyticsConnection): string | undefined {
+  const value = conn.options?.domain;
+  if (typeof value !== "string") return undefined;
+  const host = value
+    .trim()
+    .toLowerCase()
+    .replace(/^sc-domain:/, "")
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/^www\./, "");
+  return host === "" ? undefined : `sc-domain:${host}`;
+}
+
+/** Search Console knows a page by its https address: an http one is tried as https first, then as given. */
+function pageVariants(url: string): string[] {
+  return url.startsWith("http://") ? [`https://${url.slice("http://".length)}`, url] : [url];
+}
+
+/** The first variant of the page that Search Console has a row for (the last answer when none has). */
+async function queryPage(token: string, property: string, url: string, startDate: string, endDate: string): Promise<{ ok: true; row?: Row; page: string } | Failure> {
+  let last: { ok: true; row?: Row; page: string } = { ok: true, page: url };
+  for (const page of pageVariants(url)) {
+    const answer = await query(token, property, page, startDate, endDate);
+    if (!answer.ok) return answer;
+    last = { ...answer, page };
+    if (answer.row) return last;
+  }
+  return last;
 }
 
 /** A row's numbers under the metric keys of the labels file: only finite numbers. */
@@ -163,7 +192,7 @@ export const searchConsoleAnalytics: AnalyticsAdapter = {
   async read(conn, request: ReadRequest): Promise<AnalyticsResult> {
     if (!request.url) return { ok: false, error: "The Publication has no page URL to read" };
     const property = propertyOf(conn);
-    if (!property) return { ok: false, error: "Set the Search Console property (sc-domain:example.com or https://example.com/) in the connection options" };
+    if (!property) return { ok: false, error: "Set the domain of the site (example.com) in the connection options" };
     const account = parseKey(conn.apiKey);
     if ("ok" in account) return account;
 
@@ -175,13 +204,13 @@ export const searchConsoleAnalytics: AnalyticsAdapter = {
     const token = await accessToken(account, now);
     if (typeof token !== "string") return token;
 
-    const total = await query(token, property, request.url, start, end);
+    const total = await queryPage(token, property, request.url, start, end);
     if (!total.ok) return total;
     const metrics = metricsOf(total.row, ["clicks", "impressions"]);
     if (!total.row || Object.keys(metrics).length === 0) return { ok: true, reading: { status: "no_data" } };
 
     const recentStart = day(now - (FINAL_LAG_DAYS + POSITION_DAYS - 1) * DAY);
-    const recent = await query(token, property, request.url, recentStart > start ? recentStart : start, end);
+    const recent = await query(token, property, total.page, recentStart > start ? recentStart : start, end);
     if (!recent.ok) return recent;
     Object.assign(metrics, metricsOf(recent.row, ["position"]));
     return { ok: true, reading: { status: "taken", metrics } };

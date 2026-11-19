@@ -32,7 +32,7 @@ beforeAll(async () => {
   KEY_JSON = JSON.stringify({ type: "service_account", client_email: "reader@example-project.iam.gserviceaccount.com", private_key: pem });
 });
 
-const conn = (options: Record<string, string | number> = { property: "sc-domain:example.com" }, apiKey?: string) => ({
+const conn = (options: Record<string, string | number> = { domain: "example.com" }, apiKey?: string) => ({
   url: "",
   apiKey: apiKey ?? KEY_JSON,
   options,
@@ -90,8 +90,8 @@ describe("Search Console Analytics Adapter: declaration", () => {
     expect(manifest.secret).toEqual({ label: expect.any(String), kind: "json", fields: ["client_email", "private_key"] });
   });
 
-  it("takes the property as an option and maps the service labels to declared stored metrics only", () => {
-    expect(manifest.options.map((o) => o.key)).toEqual(["property"]);
+  it("takes the domain as an option and maps the service labels to declared stored metrics only", () => {
+    expect(manifest.options.map((o) => o.key)).toEqual(["domain"]);
     const stored = manifest.metrics.filter((m) => !("derive" in m)).map((m) => m.key);
     for (const metric of Object.values(metricsData.labels)) expect(stored).toContain(metric);
     expect(metricsData).not.toHaveProperty("kind");
@@ -111,11 +111,40 @@ describe("Search Console Analytics Adapter: reading", () => {
     expect((queries(calls)[0]!.init.headers as Record<string, string>).Authorization).toBe("Bearer tok-1");
   });
 
-  it("works with a URL-prefix property, url-encoded in the path", async () => {
+  it("reduces what is typed to the domain: a pasted URL or the sc-domain form give the same property", async () => {
+    for (const typed of ["example.com", "https://www.example.com/blog/", "sc-domain:Example.com", " EXAMPLE.com "]) {
+      const calls = stub([cumulative, position7d]);
+      const result = await searchConsoleAnalytics.read(conn({ domain: typed }), REQUEST);
+      expect(result.ok).toBe(true);
+      expect(queries(calls)[0]!.url).toBe("https://www.googleapis.com/webmasters/v3/sites/sc-domain%3Aexample.com/searchAnalytics/query");
+    }
+  });
+
+  it("reads an http page address as https, the address Search Console knows", async () => {
     const calls = stub([cumulative, position7d]);
-    const result = await searchConsoleAnalytics.read(conn({ property: "https://example.com/" }), REQUEST);
+    const result = await searchConsoleAnalytics.read(conn(), { ...REQUEST, url: REQUEST.url!.replace("https://", "http://") });
     expect(result.ok).toBe(true);
-    expect(queries(calls)[0]!.url).toBe("https://www.googleapis.com/webmasters/v3/sites/https%3A%2F%2Fexample.com%2F/searchAnalytics/query");
+    const sent = queries(calls).map((c) => JSON.parse(String(c.init.body)));
+    expect(sent).toEqual([cumulative.request, position7d.request]);
+  });
+
+  it("falls back to the http address when Search Console has no row for the https one", async () => {
+    const httpUrl = REQUEST.url!.replace("https://", "http://");
+    const asked: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: unknown, init: RequestInit = {}) => {
+        if (String(url) === "https://oauth2.googleapis.com/token") return new Response(JSON.stringify({ access_token: "tok-1", expires_in: 3600, token_type: "Bearer" }), { status: 200 });
+        const page = (JSON.parse(String(init.body)) as { dimensionFilterGroups: { filters: { expression: string }[] }[] }).dimensionFilterGroups[0]!.filters[0]!.expression;
+        asked.push(page);
+        return new Response(JSON.stringify(page === httpUrl ? cumulative.response : unknownPage.response), { status: 200 });
+      }),
+    );
+    const result = await searchConsoleAnalytics.read(conn(), { ...REQUEST, url: httpUrl });
+    expect(result.ok).toBe(true);
+    // https first (no row), then the address as given; the position read keeps the page that answered.
+    expect(asked.slice(0, 2)).toEqual([REQUEST.url, httpUrl]);
+    expect(asked.at(-1)).toBe(httpUrl);
   });
 
   it("starts the position window on the publication day when the page is younger than 7 final days", async () => {
@@ -204,10 +233,10 @@ describe("Search Console Analytics Adapter: service account sign-in", () => {
 });
 
 describe("Search Console Analytics Adapter: errors", () => {
-  it("asks for the property when none is set", async () => {
+  it("asks for the domain when none is set", async () => {
     const calls = stub([]);
     const result = await searchConsoleAnalytics.read(conn({}), REQUEST);
-    expect(result).toEqual({ ok: false, error: expect.stringMatching(/property/i) });
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/domain/i) });
     expect(calls).toHaveLength(0);
   });
 
