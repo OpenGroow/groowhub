@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { postizAnalytics } from "./postiz-analytics";
+import manifest from "../manifest.json";
+import metricsData from "../data/metrics.json";
 import instagram from "../fixtures/analytics-post-instagram.json";
 import tiktok from "../fixtures/analytics-post-tiktok.json";
 
@@ -26,11 +28,30 @@ function stub(analytics: unknown, listing: unknown = { posts: [] }, status = 200
   return seen;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("Postiz Analytics Adapter: declaration", () => {
-  it("needs the Postiz post id and reports after an hour", () => {
-    expect(postizAnalytics).toMatchObject({ id: "postiz", contractVersion: 1, needs: "externalId", earliestDelayMs: 3_600_000 });
+  it("needs the Postiz post id and reports after an hour, on contract 2", () => {
+    expect(postizAnalytics).toMatchObject({ id: "postiz", contractVersion: 2, needs: "externalId", earliestDelayMs: 3_600_000 });
+  });
+
+  it("declares its seven metrics in the order of the columns, views first as the main metric", () => {
+    expect(manifest.metrics.map((m) => m.key)).toEqual(["views", "likes", "comments", "engagement", "reach", "shares", "saves"]);
+    expect(manifest.primary).toBe("views");
+  });
+
+  it("derives engagement from interactions over views instead of reading it from Postiz", () => {
+    const engagement = manifest.metrics.find((m) => m.key === "engagement");
+    expect(engagement).toMatchObject({ type: "level", format: "percent", derive: { sum: ["likes", "comments", "shares", "saves"], per: "views" } });
+    expect(Object.values(metricsData.labels)).not.toContain("engagement");
+  });
+
+  it("keeps the labels mapping free of a kind, every label mapping to a declared metric", () => {
+    expect(metricsData).not.toHaveProperty("kind");
+    const declared = manifest.metrics.map((m) => m.key);
+    for (const metric of Object.values(metricsData.labels)) expect(declared).toContain(metric);
   });
 });
 
