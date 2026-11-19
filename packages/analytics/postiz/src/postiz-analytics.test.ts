@@ -133,6 +133,11 @@ describe("Postiz Analytics Adapter: failures", () => {
     expect(await postizAnalytics.read(CONN, REQUEST)).toEqual({ ok: false, error: expect.stringMatching(/Could not reach Postiz: ECONNREFUSED/) });
   });
 
+  it("reads an answer of `{ missing }` as no data yet, not as a failure", async () => {
+    stub({ missing: true });
+    expect(await postizAnalytics.read(CONN, REQUEST)).toEqual({ ok: true, reading: { status: "no_data" } });
+  });
+
   it("reports an answer that is not a list", async () => {
     stub({ unexpected: true });
     // The message says what the answer looked like, never its values.

@@ -101,6 +101,8 @@ export const postizAnalytics: AnalyticsAdapter = {
     if (!postId) return { ok: false, error: "The Publication has no Postiz post id to read" };
     const res = await get(conn, `analytics/post/${encodeURIComponent(postId)}?date=${lookbackDays(conn)}`);
     if (!res.ok) return res;
+    // `{ missing: ... }`: Postiz has no statistics for this post (a service it does not report on, or nothing yet). A missing figure is normal, not a failure.
+    if (typeof res.body === "object" && res.body !== null && !Array.isArray(res.body) && "missing" in res.body) return { ok: true, reading: { status: "no_data" } };
     if (!Array.isArray(res.body)) return { ok: false, error: `Postiz returned an unexpected analytics answer for post ${postId}: ${shapeOf(res.body)}` };
 
     const metrics: Record<string, number> = {};
