@@ -135,7 +135,8 @@ describe("Postiz Analytics Adapter: failures", () => {
 
   it("reports an answer that is not a list", async () => {
     stub({ unexpected: true });
-    expect(await postizAnalytics.read(CONN, REQUEST)).toEqual({ ok: false, error: expect.stringMatching(/unexpected/) });
+    // The message says what the answer looked like, never its values.
+    expect(await postizAnalytics.read(CONN, REQUEST)).toEqual({ ok: false, error: expect.stringMatching(/unexpected.*an object with the keys unexpected/) });
   });
 
   it("needs the post id", async () => {

@@ -78,6 +78,17 @@ async function isListed(conn: AnalyticsConnection, postId: string, publishedAt: 
   return { ok: true as const, listed: posts.some((p) => (p as { id?: unknown } | null)?.id === postId) };
 }
 
+/** What an answer looks like, without its values: enough to see why it is not the list of metrics that was expected. */
+function shapeOf(body: unknown): string {
+  if (body === null) return "null";
+  if (Array.isArray(body)) return "a list";
+  if (typeof body === "object") {
+    const keys = Object.keys(body as object).slice(0, 8);
+    return keys.length > 0 ? `an object with the keys ${keys.join(", ")}` : "an empty object";
+  }
+  return `a ${typeof body}`;
+}
+
 export const postizAnalytics: AnalyticsAdapter = {
   id: manifest.id,
   name: manifest.name,
@@ -90,7 +101,7 @@ export const postizAnalytics: AnalyticsAdapter = {
     if (!postId) return { ok: false, error: "The Publication has no Postiz post id to read" };
     const res = await get(conn, `analytics/post/${encodeURIComponent(postId)}?date=${lookbackDays(conn)}`);
     if (!res.ok) return res;
-    if (!Array.isArray(res.body)) return { ok: false, error: "Postiz returned an unexpected analytics answer" };
+    if (!Array.isArray(res.body)) return { ok: false, error: `Postiz returned an unexpected analytics answer for post ${postId}: ${shapeOf(res.body)}` };
 
     const metrics: Record<string, number> = {};
     for (const entry of res.body as Array<{ label?: unknown; data?: unknown }>) {
