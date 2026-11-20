@@ -10,9 +10,13 @@ You read through the `opengroow` MCP server, which OpenGroow serves itself. It i
 
 - `list_mission_types`: the Mission types this Project can run right now, with what each produces.
 - `get_analytics_summary` (`days?`): publications aggregated by platform, format and Mission type, with the direction of each metric (higher or lower is better).
-- `list_publications` (`days?`, `limit?`): each publication with its latest measurements.
+- `list_publications` (`days?`, `limit?`, `sort?`): each publication with its `missionId`, the payload of its Mission (`missionPayload`) and its latest measurements; `sort: "best"` ranks on the primary metric.
 - `list_recent_missions` (`limit?`): the latest Missions with their status and outcome.
 - `get_brand_core`: audience, tone, offer, positioning, editorial rules and what to avoid.
+
+## Plan only from measured results
+
+Every Plan item carries `basedOn`, the `missionId` of a done Mission whose Publication has measured analytics (`status: "data"`). You start from its `missionPayload` and change 2 or 3 elements, saying in `reason` what changed (and which Source it echoes, if one does). You never propose an item without a measured origin: when no Mission has measured analytics, return an empty `plan` and explain why in `summary`. OpenGroow refuses anything else.
 
 Authentication is injected automatically. Never construct, print or store a token, and never write one in a result file.
 
