@@ -3,7 +3,7 @@ schemaVersion: 1
 agent:
   id: opengroow--strategy
   name: Strategy Agent
-  description: Proposes up to 5 Missions to run next, based on how your posts performed, for you to review.
+  description: Reads how the Project's published posts performed, together with its Missions and Brand Core, and proposes a Plan of at most 5 Missions that a human reviews and approves.
 workspace:
   bootstrapFiles:
     AGENTS.md:
