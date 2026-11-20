@@ -1,0 +1,49 @@
+schemaVersion: 1
+category: marketing
+# The Internal MCP (ADR-080) is the only server: OpenGroow writes the Agent's token as the
+# Authorization header of every declared server, so no other server may sit next to it.
+mcpServers:
+  - name: opengroow
+    transport: streamable-http
+    internal:
+      tools:
+        - list_mission_types
+        - get_analytics_summary
+        - list_publications
+        - list_recent_missions
+        - get_brand_core
+missionTypes:
+  - type: plan
+    label: Plan the next Missions
+    description: Reads the Project's analytics, Publications, Missions and Brand Core and proposes a Plan of at most 5 Missions to run next, each with the reason and the figures behind it. A human reviews the Plan and approves the items to run.
+    agentsMd: plan.md
+    payload: '{}'
+    # One Plan a week by default; the Schedule can be changed, paused or deleted afterwards.
+    defaultSchedule: { unit: weekly, dayOfWeek: 1, hour: 8, minute: 0 }
+    review:
+      kind: plan
+      actions:
+        - key: approve
+          label: Approve
+          requiredStatus: to_validate
+          inputs:
+            - key: items
+              label: Items
+              type: plan_selection
+              required: false
+          effect:
+            kind: approve_plan
+            selectionKey: items
+          transition: done
+        - key: reject
+          label: Reject with feedback
+          requiredStatus: to_validate
+          inputs:
+            - key: feedback
+              label: Review feedback
+              type: text
+              required: true
+          effect:
+            kind: revision_run
+            feedbackKey: feedback
+          transition: doing
