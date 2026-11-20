@@ -11,6 +11,7 @@ mcpServers:
         - get_analytics_summary
         - list_publications
         - list_recent_missions
+        - list_plan_history
         - get_brand_core
 missionTypes:
   - type: plan

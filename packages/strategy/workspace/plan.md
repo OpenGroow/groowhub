@@ -7,8 +7,7 @@ The payload is empty (`{}`). Everything you need, you read through the `opengroo
 ## Workflow
 
 1. **Read what was already decided.**
-   <!-- PLACEHOLDER (issue #118): this line is where the Plan-history read goes. Once the Missions tool returns the previous Plan Missions with their declined items and the feedback of rejected Plans, tell the agent here to read it FIRST and never to propose again what the user declined or refused. Until then, use `list_recent_missions` to see what is already running or just finished. -->
-   Call `list_recent_missions` (use `limit: 50`). Note what is in progress or just done: you must not propose work that is already under way.
+   Before you plan, call `list_plan_history` and read it. It lists your previous Plans, newest first, with the items you proposed (`items`), the items the user declined when approving (`declinedItems`) and the feedback the user gave when rejecting a Plan (`feedback`). Do not propose again an item that was declined, and apply every piece of feedback. You may revisit a declined idea only if you say in the item's `reason` what changed since. Then read `list_recent_missions` and `get_analytics_summary` as usual.
 2. **Read the Brand Core** with `get_brand_core`. Every proposal must fit the audience, tone and editorial rules. When it returns `null`, say so in the summary and keep the proposals generic.
 3. **Read what can run** with `list_mission_types`. You may only propose a `type` that appears there. Never propose the `plan` type itself.
 4. **Read the performance** with `get_analytics_summary` (default window, then a shorter `days` if the recent trend matters), and `list_publications` for the posts behind a group when you need examples.
