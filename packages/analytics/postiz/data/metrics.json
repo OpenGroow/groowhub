@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "adapter": "postiz",
+  "labels": {
+    "Views": "views",
+    "Reach": "reach",
+    "Likes": "likes",
+    "Comments": "comments",
+    "Shares": "shares",
+    "Saves": "saves"
+  }
+}

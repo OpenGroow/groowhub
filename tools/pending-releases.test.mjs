@@ -7,7 +7,7 @@ import { pendingReleases } from "./pending-releases.mjs";
 const DIGEST = `sha256:${"a".repeat(64)}`;
 const PLACEHOLDER = `sha256:${"0".repeat(64)}`;
 
-function hub({ templates = {}, publishers = {}, index = [], publisherIndex = [] }) {
+function hub({ templates = {}, publishers = {}, analytics = {}, index = [], publisherIndex = [], analyticsIndex = [] }) {
   const root = mkdtempSync(join(tmpdir(), "hub-"));
   const write = (path, value) => {
     mkdirSync(join(root, path, ".."), { recursive: true });
@@ -17,6 +17,8 @@ function hub({ templates = {}, publishers = {}, index = [], publisherIndex = [] 
   for (const [id, pkg] of Object.entries(publishers)) write(`packages/publisher/${id}/package.json`, pkg);
   write("index.json", { schemaVersion: 1, packages: index });
   write("publishers.json", { schemaVersion: 1, packages: publisherIndex });
+  for (const [id, pkg] of Object.entries(analytics)) write(`packages/analytics/${id}/package.json`, pkg);
+  write("analytics.json", { schemaVersion: 1, packages: analyticsIndex });
   return root;
 }
 
@@ -42,6 +44,14 @@ describe("pendingReleases", () => {
       { dir: "packages/source", tag: "source@1.0.2", index: "index.json" },
       { dir: "packages/publisher/postiz", tag: "publisher-postiz@1.0.1", index: "publishers.json" },
     ]);
+  });
+
+  it("releases an Analytics Adapter package under the analytics- tag, from analytics.json", () => {
+    const root = hub({
+      analytics: { postiz: { name: "@opengroow/analytics-postiz", version: "1.0.0" } },
+      analyticsIndex: [{ id: "@opengroow/analytics-postiz", tag: "analytics-postiz@1.0.0", digest: PLACEHOLDER }],
+    });
+    expect(pendingReleases(root).pending).toEqual([{ dir: "packages/analytics/postiz", tag: "analytics-postiz@1.0.0", index: "analytics.json" }]);
   });
 
   it("skips a package without an index entry and ignores the publisher folder itself", () => {

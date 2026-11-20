@@ -1,0 +1,36 @@
+{
+  "id": "search-console",
+  "name": "Google Search Console",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHRpdGxlPkdvb2dsZSBTZWFyY2ggQ29uc29sZTwvdGl0bGU+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIj48cGF0aCBmaWxsPSIjZmJiYzA0IiBkPSJtMTEuMDgxIDMwLjUyNy00LjcyIDQuNzIxYS45MzMuOTMzIDAgMCAxLTEuMzE3IDBsLS4yOTItLjI5MmEuOTMzLjkzMyAwIDAgMSAwLTEuMzE2bDQuNzItNC43MjFhLjkzMy45MzMgMCAwIDEgMS4zMTggMGwuMjkxLjI5MWEuOTMuOTMgMCAwIDEgMCAxLjMxNyIvPjxwYXRoIGZpbGw9IiM0Mjg1ZjQiIGQ9Ik0yMy43NSAzMi41aDYuMDQyYTYuMDQgNi4wNCAwIDAgMCA2LjA0MS02LjA0MnYtMTYuMjVhNi4wNCA2LjA0IDAgMCAwLTYuMDQxLTYuMDQxIDYuMDQgNi4wNCAwIDAgMC02LjA0MiA2LjA0MXoiLz48cGF0aCBmaWxsPSIjZmJiYzA0IiBkPSJNMTMuNzUgMzIuNWE2LjA0IDYuMDQgMCAwIDAgNi4wNDItNi4wNDIgNi4wNCA2LjA0IDAgMCAwLTYuMDQyLTYuMDQxIDYuMDQgNi4wNCAwIDAgMC02LjA0MiA2LjA0MUE2LjA0IDYuMDQgMCAwIDAgMTMuNzUgMzIuNSIvPjxwYXRoIGZpbGw9IiMzNGE4NTMiIGQ9Ik0yNy45NyAzMi41aC01Ljg4N2E2LjA0IDYuMDQgMCAwIDEtNi4wNDEtNi4wNDJ2LTcuOTE2YTYuMDQgNi4wNCAwIDAgMSA2LjA0MS02LjA0MiA2LjA0IDYuMDQgMCAwIDEgNi4wNDIgNi4wNDJ2MTMuODA0YS4xNTQuMTU0IDAgMCAxLS4xNTQuMTU0eiIvPjxwYXRoIGZpbGw9IiMxOTY3ZDIiIGQ9Ik0yOC4xMjUgMzIuMzQ2VjE4LjU0MmE2LjA0IDYuMDQgMCAwIDAtNC4zNzUtNS44MDdWMzIuNWg0LjIyYS4xNTQuMTU0IDAgMCAwIC4xNTUtLjE1NCIvPjxwYXRoIGZpbGw9IiNlYTQzMzUiIGQ9Ik0xOS43OTIgMjYuNTc1YTYuMDQgNi4wNCAwIDAgMC0zLjc1LTUuNTl2NS41OWMwIDEuNzIuNzIgMy4yNzMgMS44NzUgNC4zNzNhNi4wMiA2LjAyIDAgMCAwIDEuODc1LTQuMzczIi8+PC9nPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMGg0MHY0MEgweiIvPjwvY2xpcFBhdGg+PC9kZWZzPjwvc3ZnPg==",
+  "contractVersion": 2,
+  "needs": "url",
+  "earliestDelayMs": 259200000,
+  "metrics": [
+    { "key": "clicks", "label": "Clicks", "type": "counter", "format": "number" },
+    { "key": "impressions", "label": "Impressions", "type": "counter", "format": "number" },
+    {
+      "key": "ctr",
+      "label": "CTR",
+      "type": "level",
+      "format": "percent",
+      "derive": { "sum": ["clicks"], "per": "impressions" }
+    },
+    { "key": "position", "label": "Position", "type": "level", "format": "number", "better": "lower" }
+  ],
+  "primary": "clicks",
+  "collect": ["3d", "7d", "28d"],
+  "secret": {
+    "label": "Service account key (JSON)",
+    "kind": "json",
+    "fields": ["client_email", "private_key"]
+  },
+  "needsUrl": false,
+  "options": [
+    {
+      "key": "domain",
+      "label": "Domain of the site (example.com), as a domain property in Search Console",
+      "type": "text",
+      "default": ""
+    }
+  ]
+}

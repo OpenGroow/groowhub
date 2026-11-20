@@ -12,6 +12,7 @@
  *
  * Templates: packages/<name>, tag <name>@<version>, index.json.
  * Publishers: packages/publisher/<id>, tag publisher-<id>@<version>, publishers.json.
+ * Analytics Adapters: packages/analytics/<id>, tag analytics-<id>@<version>, analytics.json.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,6 +40,11 @@ export function pendingReleases(root) {
       dir: `packages/publisher/${id}`,
       prefix: `publisher-${id}`,
       index: "publishers.json",
+    })),
+    ...folders(root, "packages/analytics").map((id) => ({
+      dir: `packages/analytics/${id}`,
+      prefix: `analytics-${id}`,
+      index: "analytics.json",
     })),
   ];
   const pending = [];

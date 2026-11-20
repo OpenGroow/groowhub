@@ -8,6 +8,7 @@ name: Release
 #
 #   Templates   packages/<name>             tag <name>@<version>            index.json
 #   Publishers  packages/publisher/<id>     tag publisher-<id>@<version>    publishers.json
+#   Analytics   packages/analytics/<id>     tag analytics-<id>@<version>    analytics.json
 #
 # The human gate is the reviewed PR that bumps the version: that merge decides
 # what installs on users' deployments. The first index entry of a package (and
@@ -41,7 +42,7 @@ jobs:
       contents: read
     env:
       # The hub's tooling, published from the OpenGroow repository. Bump when a manifest format changes.
-      GROOWHUB_CLI: "@opengroow/groowhub-cli@0.1.0"
+      GROOWHUB_CLI: "@opengroow/groowhub-cli@0.6.0"
     steps:
       - uses: actions/create-github-app-token@v1
         id: app
@@ -86,6 +87,8 @@ jobs:
               fi
               if [ "$index" = "publishers.json" ]; then
                 npx --yes "$GROOWHUB_CLI" pack publisher "$dir" --out "$out"
+              elif [ "$index" = "analytics.json" ]; then
+                npx --yes "$GROOWHUB_CLI" pack analytics "$dir" --out "$out"
               else
                 npm pack "./$dir" --pack-destination "$out"
               fi
@@ -106,7 +109,7 @@ jobs:
           APP_SLUG: ${{ steps.app.outputs.app-slug }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- index.json publishers.json; then
+          if git diff --quiet -- index.json publishers.json analytics.json; then
             echo "The index already points at these releases"
             exit 0
           fi
@@ -114,7 +117,7 @@ jobs:
           id=$(gh api "/users/${bot}" --jq .id)
           git config user.name "$bot"
           git config user.email "${id}+${bot}@users.noreply.github.com"
-          git add index.json publishers.json
+          git add index.json publishers.json analytics.json
           git commit -m "Release $(paste -sd ' ' "$RUNNER_TEMP/released")"
           # Another merge may have landed meanwhile: rebase the index commit on it.
           for attempt in 1 2 3; do

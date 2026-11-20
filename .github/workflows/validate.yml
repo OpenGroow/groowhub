@@ -46,14 +46,15 @@ jobs:
       # version when a manifest format changes.
       - name: Validate every package and the index
         env:
-          VALIDATOR: "@opengroow/groowhub-cli@0.1.0"
+          VALIDATOR: "@opengroow/groowhub-cli@0.6.0"
         run: |
           status=0
           for dir in packages/*/; do
             # packages/publisher/ holds Publisher packages, checked in their own job
             [ "$(basename "$dir")" = "publisher" ] && continue
-            # the publisher- prefix is reserved for Publisher tags (release.yml)
-            case "$(basename "$dir")" in publisher-*) echo "::error::$dir: a Template cannot be named publisher-*"; status=1; continue;; esac
+            [ "$(basename "$dir")" = "analytics" ] && continue
+            # the publisher- and analytics- prefixes are reserved for their tags (release.yml)
+            case "$(basename "$dir")" in publisher-*|analytics-*) echo "::error::$dir: a Template cannot be named publisher-* or analytics-*"; status=1; continue;; esac
             npx --yes "$VALIDATOR" validate template "${dir%/}" || status=1
           done
           npx --yes "$VALIDATOR" validate index index.json || status=1
@@ -61,6 +62,10 @@ jobs:
             [ -d "$dir" ] && { npx --yes "$VALIDATOR" validate publisher "${dir%/}" || status=1; }
           done
           npx --yes "$VALIDATOR" validate index publishers.json --kind publisher || status=1
+          for dir in packages/analytics/*/; do
+            [ -d "$dir" ] && { npx --yes "$VALIDATOR" validate analytics "${dir%/}" || status=1; }
+          done
+          npx --yes "$VALIDATOR" validate index analytics.json --kind analytics || status=1
           exit $status
 
   publishers:

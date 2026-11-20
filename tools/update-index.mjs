@@ -40,7 +40,7 @@ function main(argv) {
   const id = pkg.name;
   /** @type {Record<string, string>} */
   const display = {};
-  if (basename(flags["--index"]) === "publishers.json") {
+  if (["publishers.json", "analytics.json"].includes(basename(flags["--index"]))) {
     const manifest = JSON.parse(readFileSync(join(flags["--package"], "manifest.json"), "utf-8"));
     for (const [key, value] of [["name", manifest.name], ["description", pkg.description], ["icon", manifest.icon]]) {
       if (typeof value === "string" && value) display[key] = value;

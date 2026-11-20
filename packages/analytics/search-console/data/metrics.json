@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "adapter": "search-console",
+  "labels": {
+    "clicks": "clicks",
+    "impressions": "impressions",
+    "position": "position"
+  }
+}
