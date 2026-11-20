@@ -9,7 +9,7 @@ import tiktok from "../fixtures/analytics-post-tiktok.json";
 // spike captured from a real instance (ADR-078, Consequences).
 
 const CONN = { url: "https://postiz.example.com/", apiKey: "key-1" };
-const REQUEST = { externalId: "cm-post-1", kind: "social" as const, publishedAt: Date.parse("2026-11-17T10:00:00Z") };
+const REQUEST = { externalId: "cm-post-1", publishedAt: Date.parse("2026-11-17T10:00:00Z") };
 
 type Stubbed = { urls: string[]; headers: Array<Record<string, string>> };
 
@@ -145,6 +145,6 @@ describe("Postiz Analytics Adapter: failures", () => {
   });
 
   it("needs the post id", async () => {
-    expect(await postizAnalytics.read(CONN, { kind: "social", publishedAt: 1 })).toEqual({ ok: false, error: expect.stringMatching(/post id/) });
+    expect(await postizAnalytics.read(CONN, { publishedAt: 1 })).toEqual({ ok: false, error: expect.stringMatching(/post id/) });
   });
 });
