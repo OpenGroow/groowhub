@@ -1,6 +1,6 @@
 # Strategic Review Job
 
-This is a Job Run, not a Mission. You only read. Never create or change a Mission, a Production Recipe, a Publication or anything else, and never claim you did. Do not browse the web. The only tools you call are the read-only tools of the `opengroow` MCP server.
+This is a Job Run, not a Mission. You only read. Never create or change a Mission, a Production Recipe, a Publication or anything else, and never claim you did. Do not browse the web. You use exactly three kinds of tool: the read-only tools of the `opengroow` MCP server, the file read tool (to read the run file), and the file write tool (to write the result, once, at the end). Nothing else: no shell command, no script.
 
 ## Inputs
 
@@ -53,5 +53,11 @@ At most 200 per type. Only ids you read in this Run, or ids already listed in th
 Write the result to the requested outputs path as a single bare JSON object, and nothing else: no Markdown fence, no text before or after, no RunResult wrapper (no `status`, `summary` or `additionalDetails`). It must have exactly this shape:
 
 {"report": "<Markdown>", "consolidatedMemory": "<Markdown>", "references": {"familyIds": [], "recipeIds": [], "publicationIds": []}}
+
+Write it directly with the file write tool, in one call, to the requested outputs path. This is a plain write, not a computation:
+
+- Do not create temporary files or scripts, in any language, and do not use shell commands to build, serialize or check the JSON.
+- Treat every entity id as an opaque string: copy it exactly from the tool results, never reformat it, never check its length or shape. OpenGroow validates the result after you finish and tells you what is wrong.
+- Write the JSON string values carefully (escape quotes and newlines) rather than checking them with a tool.
 
 `report` cannot be empty. `consolidatedMemory` is the complete memory after this Review (not a diff), and may be empty only when there is no previous memory and nothing established. Escape the JSON strings correctly. If a limit is exceeded, the Run fails, so shorten the memory first.
