@@ -14,6 +14,7 @@ GroowHub is the official Template hub for [OpenGroow](https://github.com/OpenGro
 | Template | Description | Category | Verification |
 | --- | --- | --- | --- |
 | [`@opengroow/source`](packages/source) | Judges every origin's Sources against a fixed rubric and routes the daily selected Source | system | official |
+| [`@opengroow/strategy`](packages/strategy) | Periodically reviews how the Project's content performed and keeps a concise Strategic Memory (read-only) | system | official |
 
 The full list lives in [`index.json`](index.json).
 

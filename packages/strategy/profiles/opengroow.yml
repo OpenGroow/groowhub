@@ -1,0 +1,18 @@
+schemaVersion: 1
+category: system
+# OpenGroow's own read-only MCP (ADR-080): no url, no other server next to it.
+mcpServers:
+  - name: opengroow
+    transport: streamable-http
+    internal:
+      tools:
+        - get_strategic_memory
+        - get_analytics_summary
+        - list_publications
+        - list_production_recipes
+        - get_brand_core
+contextProviders:
+  - strategic-review-period
+jobTypes:
+  - type: strategic_review
+    agentsMd: jobs/strategic-review.md
