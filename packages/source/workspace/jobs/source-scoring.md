@@ -14,3 +14,9 @@ Return every entry, even when all scores are zero.
 When the run file includes feedback, correct only the listed invalid entries
 and return the complete retry batch. Valid entries from the previous attempt
 have already been persisted and will not appear in the retry batch.
+
+Write the result in one call with the file write tool, to the requested outputs
+path. Do not create temporary scripts or files, and do not build or check the
+JSON with shell commands or Python (Python is not installed). Copy each
+`sourceId` exactly as an opaque string. OpenGroow validates the result after the
+Run.

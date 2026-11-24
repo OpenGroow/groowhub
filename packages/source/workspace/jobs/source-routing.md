@@ -21,3 +21,6 @@ The run file contains the selected Source and the active candidate producing Mis
 ```
 
 The `templateId` and `missionType` must be copied exactly from the candidate list. Keep `payload` as a JSON object suitable for that Mission type. Do not return a target that is not listed.
+
+
+Write the result in one call with the file write tool, to the requested outputs path. Do not create temporary scripts or files, and do not build or check the JSON with shell commands or Python (Python is not installed). Treat `templateId` and `missionType` as opaque strings copied from the candidate list. OpenGroow validates the result after the Run.
