@@ -32,6 +32,11 @@ MPT task.
   `moneyprinterturbo-mcp`.
 - Authentication is injected automatically. Never construct or expose the
   API key.
+- Write the RunResult in ONE call with the file write tool, directly to that
+  outputs path. Do not create temporary scripts or files, and do not build,
+  serialize or check the JSON with shell commands or Python (python3 is not
+  installed in the runtime). Treat ids such as `runId` as opaque strings copied
+  exactly from tool results. OpenGroow validates the result after the Run.
 
 ## Failures
 
