@@ -22,6 +22,17 @@
       "digest": "sha256:b8f3b51df6c476bfe559265143f91753ac32103512d489034671ea6396b91d06",
       "category": "marketing",
       "verification": "official"
+    },
+    {
+      "id": "@opengroow/strategy",
+      "name": "Strategy Agent",
+      "description": "A system-level agent that periodically reads how the Project's content performed and keeps a concise Strategic Memory of what it learned. It only reads OpenGroow's data and never creates a Mission, a Production Recipe or a Publication.",
+      "repository": "OpenGroow/groowhub",
+      "tag": "strategy@1.0.0",
+      "asset": "opengroow-strategy-1.0.0.tgz",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "category": "system",
+      "verification": "official"
     }
   ]
 }
