@@ -14,6 +14,10 @@ mcpServers:
         - list_mission_types
         - list_sources
         - list_planned_contents
+        - get_creative_family
+        - list_family_sources
+        - get_source
+        - get_production_recipe
 contextProviders:
   - strategic-review-period
   - content-planning-targets
