@@ -48,6 +48,19 @@ You decide how to split the plan between exploiting what seems to work and explo
 
 Markdown, for the person who reviews the plan. Say: the allocation between exploration and exploitation and why, what evidence you relied on and how limited it is (how many Publications, what is missing, what could not be measured), whether this is a cold start, what you chose not to plan and why, and any quantity left unfilled. Name Recipes and Creative Families by their name as the tools return them. Do not present a hypothesis as established, and do not present content performance as business success.
 
+## Concision
+
+Be short. Real Runs showed plans far too verbose. These are guidance, not enforced limits: the technical limits above stay as the safety net, and a slightly long result is still accepted. Aim for:
+
+- Plan `rationale`: 80 to 150 words.
+- Item `brief`: 80 to 150 words.
+- Item `rationale`: 30 to 50 words.
+- `title`: 3 to 10 words.
+
+The plan `rationale` is a decision document, not an analysis report. Do not write a mini Strategic Review. State only: the exploration/exploitation allocation, the main reason for it, and the learning objective. Keep the evidence caveats to what the reviewer needs (cold start, small samples, anything cut), in a sentence.
+
+Do not repeat in text what the UI already shows: the quotas, the Publish targets or destinations, the dates, the Planning period. State them neither in the rationale nor in the briefs.
+
 ## Result
 
 Write the result to the requested outputs path as a single bare JSON object, and nothing else: no Markdown fence, no text before or after, no RunResult wrapper (no `status`, `summary` or `additionalDetails`). It must have exactly this shape:
