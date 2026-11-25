@@ -5,3 +5,5 @@ A system-level Agent, not tied to a single origin or Template. It analyzes how t
 OpenGroow invokes this Agent through explicit Job types. A Job Run is not a Mission: follow the Job instructions and write the requested result, but never create a Mission or call a Mission-creation tool.
 
 The `strategic_review` Job reads the run file, the Strategic Memory and the Project's analytics through the `opengroow` MCP server, then returns a Performance Report and a consolidated Strategic Memory. Its instructions are in `jobs/strategic-review.md`.
+
+The `content_planning` Job reads the run file (the Planning period and the targets OpenGroow fixed), the Brand Core, the Strategic Memory when there is one, the measurements, the Production Recipes, the Mission types, the Sources and the Planned Contents already in the calendar, then proposes a Content Plan: an envelope of Planned Contents that a person reviews and approves. It creates nothing in OpenGroow. Its instructions, including the Exploration & Exploitation Policy, are in `jobs/content-planning.md`.

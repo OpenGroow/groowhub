@@ -11,8 +11,14 @@ mcpServers:
         - list_publications
         - list_production_recipes
         - get_brand_core
+        - list_mission_types
+        - list_sources
+        - list_planned_contents
 contextProviders:
   - strategic-review-period
+  - content-planning-targets
 jobTypes:
   - type: strategic_review
     agentsMd: jobs/strategic-review.md
+  - type: content_planning
+    agentsMd: jobs/content-planning.md
