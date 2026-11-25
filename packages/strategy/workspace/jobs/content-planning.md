@@ -59,6 +59,10 @@ Be short. Real Runs showed plans far too verbose. These are guidance, not enforc
 
 The plan `rationale` is a decision document, not an analysis report. Do not write a mini Strategic Review. State only: the exploration/exploitation allocation, the main reason for it, and the learning objective. Keep the evidence caveats to what the reviewer needs (cold start, small samples, anything cut), in a sentence.
 
+Each item `rationale` explains why this content, in its own terms. Do not restate the plan's overall logic or allocation there.
+
+Each `brief` stays short but complete enough for production without further questions: the angle, the scene or structure, the tone and the call to action. Concise means no filler, not missing information.
+
 Do not repeat in text what the UI already shows: the quotas, the Publish targets or destinations, the dates, the Planning period. State them neither in the rationale nor in the briefs.
 
 ## Result
