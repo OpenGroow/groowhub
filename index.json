@@ -28,9 +28,9 @@
       "name": "Strategy Agent",
       "description": "A system-level agent that periodically reads how the Project's content performed and keeps a concise Strategic Memory of what it learned. It only reads OpenGroow's data and never creates a Mission, a Production Recipe or a Publication.",
       "repository": "OpenGroow/groowhub",
-      "tag": "strategy@1.0.0",
-      "asset": "opengroow-strategy-1.0.0.tgz",
-      "digest": "sha256:a2ccaa47b31a508138dcd0f5f93201a5601df7ce11be690707c0d67f7bdbd341",
+      "tag": "strategy@1.1.0",
+      "asset": "opengroow-strategy-1.1.0.tgz",
+      "digest": "sha256:7b54c67e7d1b1a00d1a8227fd2eb56eec4c1c1ccdc01c12d621d44ec236d48ff",
       "category": "system",
       "verification": "official"
     }
