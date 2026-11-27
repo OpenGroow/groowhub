@@ -1,4 +1,4 @@
-schemaVersion: 1
+schemaVersion: 2
 category: system
 # OpenGroow's own read-only MCP (ADR-080): no url, no other server next to it.
 mcpServers:

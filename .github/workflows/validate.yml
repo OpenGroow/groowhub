@@ -46,7 +46,7 @@ jobs:
       # version when a manifest format changes.
       - name: Validate every package and the index
         env:
-          VALIDATOR: "@opengroow/groowhub-cli@0.9.0"
+          VALIDATOR: "@opengroow/groowhub-cli@0.10.0"
         run: |
           status=0
           for dir in packages/*/; do
