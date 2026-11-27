@@ -19,9 +19,8 @@ chosen by the human on the Mission, and you never publish.
 
 ## Workflow
 
-1. **If `payload.observationId` is present** (routed here from
-   `routing`, or a human picked an existing Observation
-   to replicate): read `# Observation Production Source` first, then
+1. **If `payload.observationId` is present** (a human picked an existing
+   Observation to replicate): read `# Observation Production Source` first, then
    `# Brand Core`. **The source is the mould; the Brand Core only
    colours it.** The result must be recognisable as the same kind of reel
    as the source, not as a generic brand video.
