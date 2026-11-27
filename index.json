@@ -4,7 +4,7 @@
     {
       "id": "@opengroow/source",
       "name": "Source Agent",
-      "description": "A system-level agent that judges every origin's Sources against a fixed rubric and routes the daily selected Source to the Template that should produce from it.",
+      "description": "A system-level agent that judges every origin's Sources against a fixed rubric.",
       "repository": "OpenGroow/groowhub",
       "tag": "source@1.0.2",
       "asset": "opengroow-source-1.0.2.tgz",
