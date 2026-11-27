@@ -42,7 +42,7 @@ jobs:
       contents: read
     env:
       # The hub's tooling, published from the OpenGroow repository. Bump when a manifest format changes.
-      GROOWHUB_CLI: "@opengroow/groowhub-cli@0.9.0"
+      GROOWHUB_CLI: "@opengroow/groowhub-cli@0.10.0"
     steps:
       - uses: actions/create-github-app-token@v1
         id: app

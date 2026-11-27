@@ -19,6 +19,10 @@ chosen by the human on the Mission, and you never publish.
 
 ## Workflow
 
+Start with the `Production Recipe` section of your Mission context, then the
+Mission Brief: the recipe frames how to produce the reel, the Mission Brief
+says what this reel is about. Follow both, together with the steps below.
+
 1. **If `payload.observationId` is present** (a human picked an existing
    Observation to replicate): read `# Observation Production Source` first, then
    `# Brand Core`. **The source is the mould; the Brand Core only
