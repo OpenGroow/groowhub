@@ -6,9 +6,9 @@
       "name": "Source Agent",
       "description": "A system-level agent that judges every origin's Sources against a fixed rubric.",
       "repository": "OpenGroow/groowhub",
-      "tag": "source@1.0.2",
-      "asset": "opengroow-source-1.0.2.tgz",
-      "digest": "sha256:0b2cba945e12043612dff499fa035a174c20107e7b6dc7bcac219682e03caed8",
+      "tag": "source@1.1.0",
+      "asset": "opengroow-source-1.1.0.tgz",
+      "digest": "sha256:b73e66b01b6e262725ac25bcc2471c5c744016dc3f531722dc0cae3971501529",
       "category": "system",
       "verification": "official"
     },
@@ -17,9 +17,9 @@
       "name": "MoneyPrinterTurbo Agent",
       "description": "Produces short-form reels from a single prompt through your own moneyprinterturbo-mcp server, and publishes them after human review.",
       "repository": "OpenGroow/groowhub",
-      "tag": "moneyprinterturbo@1.3.1",
-      "asset": "opengroow-moneyprinterturbo-1.3.1.tgz",
-      "digest": "sha256:b8f3b51df6c476bfe559265143f91753ac32103512d489034671ea6396b91d06",
+      "tag": "moneyprinterturbo@1.3.2",
+      "asset": "opengroow-moneyprinterturbo-1.3.2.tgz",
+      "digest": "sha256:33483ab3073c0e642cf57404573e78af8499e21aad3f0c7bf6d6838255acaff2",
       "category": "marketing",
       "verification": "official"
     },
@@ -28,9 +28,9 @@
       "name": "Strategy Agent",
       "description": "A system-level agent that periodically reads how the Project's content performed and keeps a concise Strategic Memory of what it learned. It only reads OpenGroow's data and never creates a Mission, a Production Recipe or a Publication.",
       "repository": "OpenGroow/groowhub",
-      "tag": "strategy@1.1.0",
-      "asset": "opengroow-strategy-1.1.0.tgz",
-      "digest": "sha256:7b54c67e7d1b1a00d1a8227fd2eb56eec4c1c1ccdc01c12d621d44ec236d48ff",
+      "tag": "strategy@1.2.0",
+      "asset": "opengroow-strategy-1.2.0.tgz",
+      "digest": "sha256:29d0a2c324648455a9a879325624a04cde61bc591eb8d056b2c264d96a9af8e4",
       "category": "system",
       "verification": "official"
     }
